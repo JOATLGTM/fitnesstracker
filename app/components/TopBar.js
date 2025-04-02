@@ -9,8 +9,7 @@ export default function TopBar({
 		<header className="bg-black border-b border-gray-800 fixed top-0 left-0 right-0 z-10">
 			<div className="px-4 py-4 flex justify-between items-center">
 				<h1 className="text-xl font-semibold text-white">
-					GET THOSE GAINS{" "}
-					{username === "whoskawaii" ? "CHRIS" : "VIJAY"}!
+					GET THOSE GAINS {username?.toUpperCase()}!
 				</h1>
 				<div className="flex items-center gap-4">
 					{saveStatus && (

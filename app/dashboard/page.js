@@ -300,10 +300,19 @@ export default function DashboardPage() {
 		}
 	};
 
+	const realNames = {
+		whoskawaii: "Chris",
+		rvijay0204: "Vijay",
+		lazobas: "Laz",
+	};
+
+	console.log(user?.username);
+	console.log(realNames[user?.username]);
+
 	return (
 		<div className="min-h-screen bg-black flex flex-col">
 			<TopBar
-				username={user?.username}
+				username={realNames[user?.username]}
 				saveStatus={saveStatus}
 				isSaving={isSaving}
 				onSave={handleSave}
