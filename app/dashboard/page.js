@@ -344,56 +344,89 @@ export default function DashboardPage() {
 			{/* Main Content */}
 			<main className="flex-1 mt-16 mb-20 px-4 py-6">
 				<DragDropContext onDragEnd={handleDragEnd}>
-					<Droppable
-						droppableId="workout-plans"
-						type="PLANS"
-						isDropDisabled={false}
-						isCombineEnabled={false}
-						ignoreContainerClipping={false}
-					>
+					<Droppable droppableId="workout-plans" type="PLANS">
 						{(provided) => (
 							<div
 								{...provided.droppableProps}
 								ref={provided.innerRef}
 								className="space-y-4 mt-4"
 							>
-								{workoutPlans.map((plan, index) => (
-									<Draggable
-										key={plan.id}
-										draggableId={plan.id}
-										index={index}
-									>
-										{(provided, snapshot) => (
-											<div
-												ref={provided.innerRef}
-												{...provided.draggableProps}
-												className={`bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden ${
-													snapshot.isDragging
-														? "shadow-lg ring-2 ring-red-500"
-														: ""
-												}`}
-											>
-												{/* Plan Header */}
-												<div className="flex items-center justify-between px-4 py-4 bg-gray-800">
-													<div
-														{...provided.dragHandleProps}
-														className="flex-1 flex items-center gap-3"
-													>
+								{workoutPlans.length === 0 ? (
+									<div className="text-center py-12">
+										<p className="text-gray-400 text-lg">
+											There are no workout plans yet
+										</p>
+										<p className="text-gray-500 text-sm mt-2">
+											Create a new plan to get started
+										</p>
+									</div>
+								) : (
+									workoutPlans.map((plan, index) => (
+										<Draggable
+											key={plan.id}
+											draggableId={plan.id}
+											index={index}
+										>
+											{(provided, snapshot) => (
+												<div
+													ref={provided.innerRef}
+													{...provided.draggableProps}
+													className={`bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden ${
+														snapshot.isDragging
+															? "shadow-lg ring-2 ring-red-500"
+															: ""
+													}`}
+												>
+													{/* Plan Header */}
+													<div className="flex items-center justify-between px-4 py-4 bg-gray-800">
+														<div
+															{...provided.dragHandleProps}
+															className="flex-1 flex items-center gap-3"
+														>
+															<button
+																onClick={() =>
+																	togglePlan(
+																		plan.id
+																	)
+																}
+																className="flex items-center gap-2 text-white hover:text-gray-200"
+															>
+																<svg
+																	className={`w-6 h-6 transform transition-transform ${
+																		expandedPlanId ===
+																		plan.id
+																			? "rotate-180"
+																			: ""
+																	}`}
+																	fill="none"
+																	stroke="currentColor"
+																	viewBox="0 0 24 24"
+																>
+																	<path
+																		strokeLinecap="round"
+																		strokeLinejoin="round"
+																		strokeWidth={
+																			2
+																		}
+																		d="M19 9l-7 7-7-7"
+																	/>
+																</svg>
+																<h2 className="text-xl font-semibold">
+																	{plan.name}
+																</h2>
+															</button>
+														</div>
 														<button
 															onClick={() =>
-																togglePlan(
+																deletePlan(
 																	plan.id
 																)
 															}
-															className="flex items-center gap-2 text-white hover:text-gray-200"
+															className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+															aria-label="Delete plan"
 														>
 															<svg
-																className={`w-6 h-6 transform transition-transform ${
-																	expandedPlanId ===
-																	plan.id
-																		? "rotate-180"
-																		: ""
-																}`}
+																className="w-5 h-5"
 																fill="none"
 																stroke="currentColor"
 																viewBox="0 0 24 24"
@@ -404,340 +437,327 @@ export default function DashboardPage() {
 																	strokeWidth={
 																		2
 																	}
-																	d="M19 9l-7 7-7-7"
+																	d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
 																/>
 															</svg>
-															<h2 className="text-xl font-semibold">
-																{plan.name}
-															</h2>
 														</button>
 													</div>
-													<button
-														onClick={() =>
-															deletePlan(plan.id)
-														}
-														className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-														aria-label="Delete plan"
-													>
-														<svg
-															className="w-5 h-5"
-															fill="none"
-															stroke="currentColor"
-															viewBox="0 0 24 24"
-														>
-															<path
-																strokeLinecap="round"
-																strokeLinejoin="round"
-																strokeWidth={2}
-																d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-															/>
-														</svg>
-													</button>
-												</div>
 
-												{/* Plan Content */}
-												{expandedPlanId === plan.id && (
-													<div className="px-4 pb-4 space-y-4">
-														<Droppable
-															droppableId={
-																plan.id
-															}
-															type="EXERCISES"
-															isDropDisabled={
-																false
-															}
-															isCombineEnabled={
-																false
-															}
-															ignoreContainerClipping={
-																false
-															}
-														>
-															{(provided) => (
-																<div
-																	{...provided.droppableProps}
-																	ref={
-																		provided.innerRef
+													{/* Plan Content */}
+													{expandedPlanId ===
+														plan.id && (
+														<div className="px-4 pb-4 space-y-4">
+															{plan.exercises &&
+															plan.exercises
+																.length > 0 ? (
+																<Droppable
+																	droppableId={
+																		plan.id
 																	}
-																	className="space-y-4 mt-4"
+																	type="EXERCISES"
 																>
-																	{plan.exercises.map(
-																		(
-																			exercise,
-																			exerciseIndex
-																		) => (
-																			<Draggable
-																				key={
-																					exercise.id
-																				}
-																				draggableId={
-																					exercise.id
-																				}
-																				index={
+																	{(
+																		provided
+																	) => (
+																		<div
+																			{...provided.droppableProps}
+																			ref={
+																				provided.innerRef
+																			}
+																			className="space-y-4 mt-4"
+																		>
+																			{plan.exercises.map(
+																				(
+																					exercise,
 																					exerciseIndex
-																				}
-																			>
-																				{(
-																					provided,
-																					snapshot
 																				) => (
-																					<div
-																						ref={
-																							provided.innerRef
+																					<Draggable
+																						key={
+																							exercise.id
 																						}
-																						{...provided.draggableProps}
-																						className={`border border-gray-800 rounded-xl p-4 bg-gray-800 ${
-																							snapshot.isDragging
-																								? "shadow-lg ring-2 ring-red-500"
-																								: ""
-																						}`}
+																						draggableId={
+																							exercise.id
+																						}
+																						index={
+																							exerciseIndex
+																						}
 																					>
-																						<div className="space-y-3">
-																							<div className="flex items-center gap-2">
-																								<div
-																									{...provided.dragHandleProps}
-																									className="p-1 text-gray-400 hover:text-white cursor-grab active:cursor-grabbing"
-																								>
-																									<svg
-																										className="w-5 h-5"
-																										fill="none"
-																										stroke="currentColor"
-																										viewBox="0 0 24 24"
-																									>
-																										<path
-																											strokeLinecap="round"
-																											strokeLinejoin="round"
-																											strokeWidth={
-																												2
+																						{(
+																							provided,
+																							snapshot
+																						) => (
+																							<div
+																								ref={
+																									provided.innerRef
+																								}
+																								{...provided.draggableProps}
+																								className={`border border-gray-800 rounded-xl p-4 bg-gray-800 ${
+																									snapshot.isDragging
+																										? "shadow-lg ring-2 ring-red-500"
+																										: ""
+																								}`}
+																							>
+																								{/* Exercise content */}
+																								<div className="space-y-3">
+																									<div className="flex items-center gap-2">
+																										<div
+																											{...provided.dragHandleProps}
+																											className="p-1 text-gray-400 hover:text-white cursor-grab active:cursor-grabbing"
+																										>
+																											<svg
+																												className="w-5 h-5"
+																												fill="none"
+																												stroke="currentColor"
+																												viewBox="0 0 24 24"
+																											>
+																												<path
+																													strokeLinecap="round"
+																													strokeLinejoin="round"
+																													strokeWidth={
+																														2
+																													}
+																													d="M4 8h16M4 16h16"
+																												/>
+																											</svg>
+																										</div>
+																										<div className="flex-1 text-lg font-medium px-3 py-2 text-white">
+																											{
+																												exercise.name
 																											}
-																											d="M4 8h16M4 16h16"
-																										/>
-																									</svg>
-																								</div>
-																								<div className="flex-1 text-lg font-medium px-3 py-2 text-white">
-																									{
-																										exercise.name
-																									}
-																								</div>
-																								<button
-																									onClick={() =>
-																										deleteExercise(
-																											plan.id,
-																											exercise.id
-																										)
-																									}
-																									className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-																									aria-label="Delete exercise"
-																								>
-																									<svg
-																										className="w-5 h-5"
-																										fill="none"
-																										stroke="currentColor"
-																										viewBox="0 0 24 24"
-																									>
-																										<path
-																											strokeLinecap="round"
-																											strokeLinejoin="round"
-																											strokeWidth={
-																												2
-																											}
-																											d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-																										/>
-																									</svg>
-																								</button>
-																							</div>
-
-																							{/* Sets */}
-																							<div className="space-y-4">
-																								<div className="overflow-x-auto">
-																									<table className="w-full min-w-full table-fixed">
-																										<thead>
-																											<tr className="text-gray-300 text-sm">
-																												<th className="text-left py-2 w-[10%]">
-																													#
-																												</th>
-																												<th className="text-left py-2 w-[25%]">
-																													Previous
-																												</th>
-																												<th className="text-left py-2 w-[25%]">
-																													lbs
-																												</th>
-																												<th className="text-left py-2 w-[25%]">
-																													Reps
-																												</th>
-																												<th className="text-left py-2 w-[15%]"></th>
-																											</tr>
-																										</thead>
-																										<tbody>
-																											{exercise.sets.map(
-																												(
-																													set,
-																													setIndex
-																												) => (
-																													<tr
-																														key={
-																															setIndex
-																														}
-																														className="border-t border-gray-700"
-																													>
-																														<td className="py-2 text-gray-300">
-																															{setIndex +
-																																1}
-																														</td>
-																														<td className="py-2 text-gray-400 whitespace-nowrap">
-																															{
-																																set
-																																	.previous
-																																	.weight
-																															}
-
-																															×
-																															{
-																																set
-																																	.previous
-																																	.reps
-																															}
-																														</td>
-																														<td className="py-2">
-																															<input
-																																type="number"
-																																value={
-																																	set
-																																		.current
-																																		.weight
-																																}
-																																onChange={(
-																																	e
-																																) =>
-																																	updateSet(
-																																		plan.id,
-																																		exercise.id,
-																																		setIndex,
-																																		"weight",
-																																		parseInt(
-																																			e
-																																				.target
-																																				.value
-																																		) ||
-																																			0
-																																	)
-																																}
-																																className="w-16 px-2 py-1 text-center border border-gray-700 rounded-lg bg-white text-black focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-shadow"
-																																placeholder="0"
-																																min="0"
-																															/>
-																														</td>
-																														<td className="py-2">
-																															<input
-																																type="number"
-																																value={
-																																	set
-																																		.current
-																																		.reps
-																																}
-																																onChange={(
-																																	e
-																																) =>
-																																	updateSet(
-																																		plan.id,
-																																		exercise.id,
-																																		setIndex,
-																																		"reps",
-																																		parseInt(
-																																			e
-																																				.target
-																																				.value
-																																		) ||
-																																			0
-																																	)
-																																}
-																																className="w-16 px-2 py-1 text-center border border-gray-700 rounded-lg bg-white text-black focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-shadow"
-																																placeholder="0"
-																																min="0"
-																															/>
-																														</td>
-																														<td className="py-2">
-																															<button
-																																onClick={() =>
-																																	toggleSetCompletion(
-																																		plan.id,
-																																		exercise.id,
-																																		setIndex
-																																	)
-																																}
-																																className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-																																	set.completed
-																																		? "bg-green-500 hover:bg-green-600"
-																																		: "bg-gray-700 hover:bg-gray-600"
-																																}`}
-																															>
-																																<svg
-																																	className="w-5 h-5 text-white"
-																																	fill="none"
-																																	stroke="currentColor"
-																																	viewBox="0 0 24 24"
-																																>
-																																	<path
-																																		strokeLinecap="round"
-																																		strokeLinejoin="round"
-																																		strokeWidth={
-																																			2
-																																		}
-																																		d="M5 13l4 4L19 7"
-																																	/>
-																																</svg>
-																															</button>
-																														</td>
-																													</tr>
+																										</div>
+																										<button
+																											onClick={() =>
+																												deleteExercise(
+																													plan.id,
+																													exercise.id
 																												)
-																											)}
-																										</tbody>
-																									</table>
+																											}
+																											className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+																											aria-label="Delete exercise"
+																										>
+																											<svg
+																												className="w-5 h-5"
+																												fill="none"
+																												stroke="currentColor"
+																												viewBox="0 0 24 24"
+																											>
+																												<path
+																													strokeLinecap="round"
+																													strokeLinejoin="round"
+																													strokeWidth={
+																														2
+																													}
+																													d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+																												/>
+																											</svg>
+																										</button>
+																									</div>
+
+																									{/* Sets */}
+																									<div className="space-y-4">
+																										<div className="overflow-x-auto">
+																											<table className="w-full min-w-full table-fixed">
+																												<thead>
+																													<tr className="text-gray-300 text-sm">
+																														<th className="text-left py-2 w-[10%]">
+																															#
+																														</th>
+																														<th className="text-left py-2 w-[25%]">
+																															Previous
+																														</th>
+																														<th className="text-left py-2 w-[25%]">
+																															lbs
+																														</th>
+																														<th className="text-left py-2 w-[25%]">
+																															Reps
+																														</th>
+																														<th className="text-left py-2 w-[15%]"></th>
+																													</tr>
+																												</thead>
+																												<tbody>
+																													{exercise.sets.map(
+																														(
+																															set,
+																															setIndex
+																														) => (
+																															<tr
+																																key={
+																																	setIndex
+																																}
+																																className="border-t border-gray-700"
+																															>
+																																<td className="py-2 text-gray-300">
+																																	{setIndex +
+																																		1}
+																																</td>
+																																<td className="py-2 text-gray-400 whitespace-nowrap">
+																																	{
+																																		set
+																																			.previous
+																																			.weight
+																																	}{" "}
+																																	×{" "}
+																																	{
+																																		set
+																																			.previous
+																																			.reps
+																																	}
+																																</td>
+																																<td className="py-2">
+																																	<input
+																																		type="number"
+																																		value={
+																																			set
+																																				.current
+																																				.weight
+																																		}
+																																		onChange={(
+																																			e
+																																		) =>
+																																			updateSet(
+																																				plan.id,
+																																				exercise.id,
+																																				setIndex,
+																																				"weight",
+																																				Number(
+																																					e
+																																						.target
+																																						.value
+																																				)
+																																			)
+																																		}
+																																		className="w-16 px-2 py-1 text-center border border-gray-700 rounded-lg bg-white text-black focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-shadow"
+																																		placeholder="0"
+																																		min="0"
+																																	/>
+																																</td>
+																																<td className="py-2">
+																																	<input
+																																		type="number"
+																																		value={
+																																			set
+																																				.current
+																																				.reps
+																																		}
+																																		onChange={(
+																																			e
+																																		) =>
+																																			updateSet(
+																																				plan.id,
+																																				exercise.id,
+																																				setIndex,
+																																				"reps",
+																																				Number(
+																																					e
+																																						.target
+																																						.value
+																																				)
+																																			)
+																																		}
+																																		className="w-16 px-2 py-1 text-center border border-gray-700 rounded-lg bg-white text-black focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-shadow"
+																																		placeholder="0"
+																																		min="0"
+																																	/>
+																																</td>
+																																<td className="py-2">
+																																	<button
+																																		onClick={() =>
+																																			toggleSetCompletion(
+																																				plan.id,
+																																				exercise.id,
+																																				setIndex
+																																			)
+																																		}
+																																		className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+																																			set.completed
+																																				? "bg-green-500 hover:bg-green-600"
+																																				: "bg-gray-700 hover:bg-gray-600"
+																																		}`}
+																																	>
+																																		<svg
+																																			className="w-5 h-5 text-white"
+																																			fill="none"
+																																			stroke="currentColor"
+																																			viewBox="0 0 24 24"
+																																		>
+																																			<path
+																																				strokeLinecap="round"
+																																				strokeLinejoin="round"
+																																				strokeWidth={
+																																					2
+																																				}
+																																				d="M5 13l4 4L19 7"
+																																			/>
+																																		</svg>
+																																	</button>
+																																</td>
+																															</tr>
+																														)
+																													)}
+																												</tbody>
+																											</table>
+																										</div>
+																										<button
+																											onClick={() =>
+																												addSet(
+																													plan.id,
+																													exercise.id
+																												)
+																											}
+																											className="w-full py-2 bg-gray-900 border border-gray-700 text-white rounded-lg text-sm font-medium hover:bg-gray-800 active:bg-gray-700 transition-colors"
+																										>
+																											+
+																											Add
+																											Set
+																										</button>
+																									</div>
 																								</div>
-																								<button
-																									onClick={() =>
-																										addSet(
-																											plan.id,
-																											exercise.id
-																										)
-																									}
-																									className="w-full py-2 bg-gray-900 border border-gray-700 text-white rounded-lg text-sm font-medium hover:bg-gray-800 active:bg-gray-700 transition-colors"
-																								>
-																									+
-																									Add
-																									Set
-																								</button>
 																							</div>
-																						</div>
-																					</div>
-																				)}
-																			</Draggable>
-																		)
+																						)}
+																					</Draggable>
+																				)
+																			)}
+																			{
+																				provided.placeholder
+																			}
+																		</div>
 																	)}
-																	{
-																		provided.placeholder
-																	}
+																</Droppable>
+															) : (
+																<div className="text-center py-8">
+																	<p className="text-gray-400">
+																		No
+																		exercises
+																		in this
+																		plan
+																	</p>
+																	<p className="text-gray-500 text-sm mt-2">
+																		Add an
+																		exercise
+																		to get
+																		started
+																	</p>
 																</div>
 															)}
-														</Droppable>
 
-														{/* Add Exercise Button */}
-														<button
-															onClick={() =>
-																addExercise(
-																	plan.id
-																)
-															}
-															className="w-full py-3 text-center text-white bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-700 active:bg-gray-600 transition-colors font-medium"
-														>
-															+ Add Exercise
-														</button>
-													</div>
-												)}
-											</div>
-										)}
-									</Draggable>
-								))}
+															{/* Add Exercise Button */}
+															<button
+																onClick={() =>
+																	addExercise(
+																		plan.id
+																	)
+																}
+																className="w-full py-3 text-center text-white bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-700 active:bg-gray-600 transition-colors font-medium"
+															>
+																+ Add Exercise
+															</button>
+														</div>
+													)}
+												</div>
+											)}
+										</Draggable>
+									))
+								)}
 								{provided.placeholder}
 							</div>
 						)}
