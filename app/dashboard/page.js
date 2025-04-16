@@ -3,12 +3,22 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
-import { DragDropContext, Droppable } from "react-beautiful-dnd";
+import dynamic from "next/dynamic";
 import WorkoutPlanCard from "../components/WorkoutPlanCard";
 import AddExerciseModal from "../components/AddExerciseModal";
 import TopBar from "../components/TopBar";
 import BottomBar from "../components/BottomBar";
 import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
+
+// Dynamically import DragDropContext and Droppable to avoid SSR issues
+const DragDropContext = dynamic(
+	() => import("react-beautiful-dnd").then((mod) => mod.DragDropContext),
+	{ ssr: false }
+);
+const Droppable = dynamic(
+	() => import("react-beautiful-dnd").then((mod) => mod.Droppable),
+	{ ssr: false }
+);
 
 export default function DashboardPage() {
 	const {
@@ -341,7 +351,7 @@ export default function DashboardPage() {
 				onLogout={handleLogout}
 			/>
 
-			<div className="flex-1 flex flex-col mt-24">
+			<div className="flex-1 flex flex-col mt-16 pb-24">
 				{/* Horizontal Workout List */}
 				<div className="px-4 py-2 overflow-x-auto">
 					<div className="flex gap-4 min-w-max">
@@ -361,7 +371,7 @@ export default function DashboardPage() {
 					</div>
 				</div>
 
-				<main className="flex-1 px-4 py-6">
+				<main className="flex-1 px-4 py-6 overflow-y-auto">
 					<DragDropContext onDragEnd={handleDragEnd}>
 						<Droppable droppableId="workout-plans" type="PLANS">
 							{(provided) => (
