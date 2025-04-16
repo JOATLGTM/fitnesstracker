@@ -11,7 +11,7 @@ export default function WorkoutPlanCard({
 	onDeleteExercise,
 	onAddSet,
 	onUpdateSet,
-	onToggleSetCompletion,
+	onDeleteSet,
 }) {
 	return (
 		<Draggable key={plan.id} draggableId={plan.id} index={index}>
@@ -35,23 +35,6 @@ export default function WorkoutPlanCard({
 								onClick={() => onTogglePlan(plan.id)}
 								className="flex items-center gap-2 text-white hover:text-gray-200"
 							>
-								<svg
-									className={`w-6 h-6 transform transition-transform ${
-										expandedPlanId === plan.id
-											? "rotate-180"
-											: ""
-									}`}
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={2}
-										d="M19 9l-7 7-7-7"
-									/>
-								</svg>
 								<h2 className="text-xl font-semibold">
 									{plan.name}
 								</h2>
@@ -92,9 +75,7 @@ export default function WorkoutPlanCard({
 											onDeleteExercise={onDeleteExercise}
 											onAddSet={onAddSet}
 											onUpdateSet={onUpdateSet}
-											onToggleSetCompletion={
-												onToggleSetCompletion
-											}
+											onDeleteSet={onDeleteSet}
 										/>
 									)
 								)

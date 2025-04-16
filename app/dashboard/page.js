@@ -8,6 +8,7 @@ import WorkoutPlanCard from "../components/WorkoutPlanCard";
 import AddExerciseModal from "../components/AddExerciseModal";
 import TopBar from "../components/TopBar";
 import BottomBar from "../components/BottomBar";
+import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
 
 export default function DashboardPage() {
 	const {
@@ -27,6 +28,8 @@ export default function DashboardPage() {
 	const [isAddingExercise, setIsAddingExercise] = useState(false);
 	const [newExerciseName, setNewExerciseName] = useState("");
 	const [activePlanId, setActivePlanId] = useState(null);
+	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+	const [planToDelete, setPlanToDelete] = useState(null);
 
 	// Load workout plans on mount
 	useEffect(() => {
@@ -35,6 +38,9 @@ export default function DashboardPage() {
 				.then((plans) => {
 					if (Array.isArray(plans)) {
 						setWorkoutPlans(plans);
+						if (plans.length > 0) {
+							setExpandedPlanId(plans[0].id);
+						}
 					}
 				})
 				.catch((error) => {
@@ -71,11 +77,27 @@ export default function DashboardPage() {
 		setExpandedPlanId(newPlan.id);
 	};
 
-	const deletePlan = (planId) => {
-		setWorkoutPlans(workoutPlans.filter((plan) => plan.id !== planId));
-		if (expandedPlanId === planId) {
-			setExpandedPlanId(null);
+	const handleDeletePlan = (planId) => {
+		setPlanToDelete(planId);
+		setIsDeleteModalOpen(true);
+	};
+
+	const confirmDeletePlan = () => {
+		if (planToDelete) {
+			setWorkoutPlans(
+				workoutPlans.filter((plan) => plan.id !== planToDelete)
+			);
+			if (expandedPlanId === planToDelete) {
+				setExpandedPlanId(workoutPlans[0]?.id || null);
+			}
+			setIsDeleteModalOpen(false);
+			setPlanToDelete(null);
 		}
+	};
+
+	const cancelDeletePlan = () => {
+		setIsDeleteModalOpen(false);
+		setPlanToDelete(null);
 	};
 
 	const deleteExercise = (planId, exerciseId) => {
@@ -87,6 +109,30 @@ export default function DashboardPage() {
 						exercises: plan.exercises.filter(
 							(ex) => ex.id !== exerciseId
 						),
+					};
+				}
+				return plan;
+			})
+		);
+	};
+
+	const deleteSet = (planId, exerciseId, setIndex) => {
+		setWorkoutPlans(
+			workoutPlans.map((plan) => {
+				if (plan.id === planId) {
+					return {
+						...plan,
+						exercises: plan.exercises.map((exercise) => {
+							if (exercise.id === exerciseId) {
+								return {
+									...exercise,
+									sets: exercise.sets.filter(
+										(_, idx) => idx !== setIndex
+									),
+								};
+							}
+							return exercise;
+						}),
 					};
 				}
 				return plan;
@@ -144,7 +190,6 @@ export default function DashboardPage() {
 									{
 										previous: { weight: 0, reps: 0 },
 										current: { weight: 0, reps: 0 },
-										completed: false,
 									},
 								],
 							},
@@ -175,7 +220,6 @@ export default function DashboardPage() {
 										{
 											previous: { weight: 0, reps: 0 },
 											current: { weight: 0, reps: 0 },
-											completed: false,
 										},
 									],
 								};
@@ -190,6 +234,19 @@ export default function DashboardPage() {
 	};
 
 	const updateSet = (planId, exerciseId, setIndex, field, value) => {
+		// Convert value to string to handle leading zeros
+		const stringValue = value.toString();
+
+		// If the value starts with '0' and has more than one digit, remove the leading zero
+		const processedValue =
+			stringValue.startsWith("0") && stringValue.length > 1
+				? stringValue.slice(1)
+				: stringValue;
+
+		// Convert back to number for storage
+		const numericValue = parseFloat(processedValue);
+
+		// Update the state with the processed value
 		setWorkoutPlans(
 			workoutPlans.map((plan) => {
 				if (plan.id === planId) {
@@ -205,7 +262,7 @@ export default function DashboardPage() {
 													...set,
 													current: {
 														...set.current,
-														[field]: value,
+														[field]: numericValue,
 													},
 											  }
 											: set
@@ -221,50 +278,13 @@ export default function DashboardPage() {
 		);
 	};
 
-	const toggleSetCompletion = (planId, exerciseId, setIndex) => {
-		setWorkoutPlans(
-			workoutPlans.map((plan) => {
-				if (plan.id === planId) {
-					return {
-						...plan,
-						exercises: plan.exercises.map((exercise) => {
-							if (exercise.id === exerciseId) {
-								return {
-									...exercise,
-									sets: exercise.sets.map((set, idx) =>
-										idx === setIndex
-											? {
-													...set,
-													completed: !set.completed,
-													previous: !set.completed
-														? set.current
-														: set.previous,
-											  }
-											: set
-									),
-								};
-							}
-							return exercise;
-						}),
-					};
-				}
-				return plan;
-			})
-		);
-
-		// Trigger a save after completing a set
-		if (user?.id) {
-			handleSave();
-		}
-	};
-
 	const handleLogout = () => {
 		logout();
 		router.push("/");
 	};
 
 	const togglePlan = (planId) => {
-		setExpandedPlanId(expandedPlanId === planId ? null : planId);
+		setExpandedPlanId(planId);
 	};
 
 	const handleSave = async () => {
@@ -274,17 +294,28 @@ export default function DashboardPage() {
 		setSaveStatus("Saving...");
 
 		try {
-			// Create a deep copy of the workout plans to ensure all data is saved
-			const plansToSave = JSON.parse(JSON.stringify(workoutPlans));
+			// Update previous values with current values before saving
+			const updatedPlans = workoutPlans.map((plan) => ({
+				...plan,
+				exercises: plan.exercises.map((exercise) => ({
+					...exercise,
+					sets: exercise.sets.map((set) => ({
+						...set,
+						previous: {
+							weight: set.current.weight,
+							reps: set.current.reps,
+						},
+					})),
+				})),
+			}));
+
+			// Create a deep copy of the updated workout plans
+			const plansToSave = JSON.parse(JSON.stringify(updatedPlans));
 			const success = await saveWorkoutPlans(user.id, plansToSave);
 
 			if (success) {
+				setWorkoutPlans(updatedPlans);
 				setSaveStatus("Saved successfully!");
-				// Reload the plans to ensure we have the latest data
-				const loadedPlans = await loadWorkoutPlans(user.id);
-				if (Array.isArray(loadedPlans)) {
-					setWorkoutPlans(loadedPlans);
-				}
 			} else {
 				setSaveStatus("Failed to save");
 			}
@@ -300,68 +331,89 @@ export default function DashboardPage() {
 		}
 	};
 
-	const realNames = {
-		whoskawaii: "Chris",
-		rvijay0204: "Vijay",
-		lazobas: "Laz",
-	};
-
-	console.log(user?.username);
-	console.log(realNames[user?.username]);
-
 	return (
 		<div className="min-h-screen bg-black flex flex-col">
 			<TopBar
-				username={realNames[user?.username]}
+				username={user?.username}
 				saveStatus={saveStatus}
 				isSaving={isSaving}
 				onSave={handleSave}
 				onLogout={handleLogout}
 			/>
 
-			<main className="flex-1 mt-16 mb-20 px-4 py-6">
-				<DragDropContext onDragEnd={handleDragEnd}>
-					<Droppable droppableId="workout-plans" type="PLANS">
-						{(provided) => (
-							<div
-								{...provided.droppableProps}
-								ref={provided.innerRef}
-								className="space-y-4 mt-4"
+			<div className="flex-1 flex flex-col mt-24">
+				{/* Horizontal Workout List */}
+				<div className="px-4 py-2 overflow-x-auto">
+					<div className="flex gap-4 min-w-max">
+						{workoutPlans.map((plan) => (
+							<button
+								key={plan.id}
+								onClick={() => togglePlan(plan.id)}
+								className={`px-6 py-3 rounded-xl text-lg font-medium transition-colors ${
+									expandedPlanId === plan.id
+										? "bg-red-600 text-white"
+										: "bg-gray-800 text-gray-300 hover:bg-gray-700"
+								}`}
 							>
-								{workoutPlans.length === 0 ? (
-									<div className="text-center py-12">
-										<p className="text-gray-400 text-lg">
-											There are no workout plans yet
-										</p>
-										<p className="text-gray-500 text-sm mt-2">
-											Create a new plan to get started
-										</p>
-									</div>
-								) : (
-									workoutPlans.map((plan, index) => (
-										<WorkoutPlanCard
-											key={plan.id}
-											plan={plan}
-											index={index}
-											expandedPlanId={expandedPlanId}
-											onTogglePlan={togglePlan}
-											onDeletePlan={deletePlan}
-											onAddExercise={addExercise}
-											onDeleteExercise={deleteExercise}
-											onAddSet={addSet}
-											onUpdateSet={updateSet}
-											onToggleSetCompletion={
-												toggleSetCompletion
-											}
-										/>
-									))
-								)}
-								{provided.placeholder}
-							</div>
-						)}
-					</Droppable>
-				</DragDropContext>
-			</main>
+								{plan.name}
+							</button>
+						))}
+					</div>
+				</div>
+
+				<main className="flex-1 px-4 py-6">
+					<DragDropContext onDragEnd={handleDragEnd}>
+						<Droppable droppableId="workout-plans" type="PLANS">
+							{(provided) => (
+								<div
+									{...provided.droppableProps}
+									ref={provided.innerRef}
+									className="space-y-4"
+								>
+									{workoutPlans.length === 0 ? (
+										<div className="text-center py-12">
+											<p className="text-gray-400 text-lg">
+												There are no workout plans yet
+											</p>
+											<p className="text-gray-500 text-sm mt-2">
+												Create a new plan to get started
+											</p>
+										</div>
+									) : (
+										workoutPlans
+											.filter(
+												(plan) =>
+													plan.id === expandedPlanId
+											)
+											.map((plan, index) => (
+												<WorkoutPlanCard
+													key={plan.id}
+													plan={plan}
+													index={index}
+													expandedPlanId={
+														expandedPlanId
+													}
+													onTogglePlan={togglePlan}
+													onDeletePlan={
+														handleDeletePlan
+													}
+													onAddExercise={addExercise}
+													onDeleteExercise={
+														deleteExercise
+													}
+													onAddSet={addSet}
+													onUpdateSet={updateSet}
+													onDeleteSet={deleteSet}
+												/>
+											))
+									)}
+									{provided.placeholder}
+								</div>
+							)}
+						</Droppable>
+					</DragDropContext>
+				</main>
+			</div>
 
 			<BottomBar
 				isAddingPlan={isAddingPlan}
@@ -377,6 +429,16 @@ export default function DashboardPage() {
 				onAdd={handleAddExercise}
 				exerciseName={newExerciseName}
 				onExerciseNameChange={setNewExerciseName}
+			/>
+
+			<DeleteConfirmationModal
+				isOpen={isDeleteModalOpen}
+				onClose={cancelDeletePlan}
+				onConfirm={confirmDeletePlan}
+				itemName={
+					workoutPlans.find((plan) => plan.id === planToDelete)
+						?.name || ""
+				}
 			/>
 		</div>
 	);

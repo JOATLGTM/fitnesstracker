@@ -8,7 +8,7 @@ export default function ExerciseCard({
 	onDeleteExercise,
 	onAddSet,
 	onUpdateSet,
-	onToggleSetCompletion,
+	onDeleteSet,
 }) {
 	return (
 		<Draggable
@@ -80,7 +80,7 @@ export default function ExerciseCard({
 								planId={planId}
 								exerciseId={exercise.id}
 								onUpdateSet={onUpdateSet}
-								onToggleSetCompletion={onToggleSetCompletion}
+								onDeleteSet={onDeleteSet}
 							/>
 							<button
 								onClick={() => onAddSet(planId, exercise.id)}
