@@ -351,7 +351,7 @@ export default function DashboardPage() {
 				onLogout={handleLogout}
 			/>
 
-			<div className="flex-1 flex flex-col mt-16 pb-24">
+			<div className="flex-1 flex flex-col mt-16 pb-24 mt-24">
 				{/* Horizontal Workout List */}
 				<div className="px-4 py-2 overflow-x-auto">
 					<div className="flex gap-4 min-w-max">
