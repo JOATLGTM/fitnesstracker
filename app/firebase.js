@@ -41,6 +41,10 @@ const authenticateUser = async (username) => {
 			email: process.env.NEXT_PUBLIC_USER3_EMAIL,
 			password: process.env.NEXT_PUBLIC_USER3_PASSWORD,
 		},
+		duyle813219: {
+			email: process.env.NEXT_PUBLIC_USER4_EMAIL,
+			password: process.env.NEXT_PUBLIC_USER4_PASSWORD,
+		},
 	};
 
 	if (!userMap[username]?.email || !userMap[username]?.password) {
