@@ -46,8 +46,8 @@ const authenticateUser = async (username) => {
 			password: process.env.NEXT_PUBLIC_USER4_PASSWORD,
 		},
 		marcosjuarez: {
-			email: process.env.NEXT_PUBLIC_USER4_EMAIL,
-			password: process.env.NEXT_PUBLIC_USER4_PASSWORD,
+			email: process.env.NEXT_PUBLIC_USER5_EMAIL,
+			password: process.env.NEXT_PUBLIC_USER5_PASSWORD,
 		},
 	};
 
