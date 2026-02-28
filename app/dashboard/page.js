@@ -484,28 +484,30 @@ export default function DashboardPage() {
 												</p>
 											</div>
 										) : (
-											workoutPlans.map((plan, index) => (
-												<WorkoutPlanCard
-													key={plan.id}
-													plan={plan}
-													index={index}
-													expandedPlanId={
-														expandedPlanId
-													}
-													onTogglePlan={togglePlan}
-													onDeletePlan={
-														handleDeletePlan
-													}
-													onAddExercise={addExercise}
-													onDeleteExercise={
-														deleteExercise
-													}
-													onAddSet={addSet}
-													onUpdateSet={updateSet}
-													onDeleteSet={deleteSet}
-													onSetComplete={handleSetComplete}
-												/>
-											))
+											workoutPlans
+												.filter((plan) => plan.id === expandedPlanId)
+												.map((plan, index) => (
+													<WorkoutPlanCard
+														key={plan.id}
+														plan={plan}
+														index={index}
+														expandedPlanId={
+															expandedPlanId
+														}
+														onTogglePlan={togglePlan}
+														onDeletePlan={
+															handleDeletePlan
+														}
+														onAddExercise={addExercise}
+														onDeleteExercise={
+															deleteExercise
+														}
+														onAddSet={addSet}
+														onUpdateSet={updateSet}
+														onDeleteSet={deleteSet}
+														onSetComplete={handleSetComplete}
+													/>
+												))
 										)}
 										{provided.placeholder}
 									</div>

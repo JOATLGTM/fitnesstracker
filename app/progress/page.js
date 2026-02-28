@@ -134,7 +134,7 @@ export default function ProgressChartsPage() {
 						</button>
 					</div>
 				) : (
-					<div className="space-y-6 pb-6">
+					<div className="space-y-6 pb-6 mt-4">
 						{/* Stats Cards */}
 						<div className="grid grid-cols-2 gap-3">
 							<div className="glass rounded-xl p-4 border border-border">

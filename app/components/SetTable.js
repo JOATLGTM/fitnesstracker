@@ -35,12 +35,12 @@ export default function SetTable({
 			<table className="w-full min-w-full">
 				<thead>
 					<tr className="text-foreground-secondary text-sm font-bold border-b-2 border-border">
-						<th className="text-left py-3 px-2 w-[10%]">#</th>
-						<th className="text-left py-3 px-2 w-[24%]">Previous</th>
-						<th className="text-left py-3 px-2 w-[20%]">lbs</th>
-						<th className="text-left py-3 px-2 w-[20%]">Reps</th>
-						<th className="text-center py-3 px-2 w-[14%]"></th>
-						<th className="text-center py-3 px-2 w-[12%]"></th>
+						<th className="text-center py-3 px-1 w-[8%]">#</th>
+						<th className="text-left py-3 px-2 w-[20%]">Prev</th>
+						<th className="text-left py-3 px-2 w-[28%]">lbs</th>
+						<th className="text-left py-3 px-2 w-[28%]">Reps</th>
+						<th className="text-center py-3 px-1 w-[8%]"></th>
+						<th className="text-center py-3 px-1 w-[8%]"></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -53,21 +53,21 @@ export default function SetTable({
 									isPR ? "bg-success-bg/30" : ""
 								}`}
 							>
-								<td className="py-3 px-2">
-									<span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg font-bold text-sm ${
+								<td className="py-3 px-1 text-center">
+									<span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg font-bold text-xs ${
 										isPR ? "bg-success text-white" : "bg-surface text-foreground-secondary"
 									}`}>
 										{setIndex + 1}
 									</span>
 								</td>
 								<td className="py-3 px-2">
-									<div className="flex items-center gap-1">
-										<span className="text-foreground-tertiary font-semibold text-sm whitespace-nowrap">
-											{set.previous.weight || 0} × {set.previous.reps || 0}
+									<div className="flex flex-col">
+										<span className="text-foreground-tertiary font-semibold text-xs whitespace-nowrap">
+											{set.previous.weight || 0}×{set.previous.reps || 0}
 										</span>
 										{isPR && (
 											<svg
-												className="w-4 h-4 text-success flex-shrink-0"
+												className="w-3 h-3 text-success mt-0.5"
 												fill="currentColor"
 												viewBox="0 0 24 24"
 											>
@@ -90,7 +90,7 @@ export default function SetTable({
 												Number(e.target.value)
 											)
 										}
-										className={`w-full max-w-[70px] px-3 py-2.5 text-center text-base font-bold border-2 rounded-lg bg-surface text-foreground focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-fast min-h-touch ${
+										className={`w-full px-3 py-3 text-center text-lg font-bold border-2 rounded-lg bg-surface text-foreground focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-fast min-h-touch ${
 											isPR ? "border-success" : "border-border"
 										}`}
 										placeholder="0"
@@ -112,20 +112,20 @@ export default function SetTable({
 												Number(e.target.value)
 											)
 										}
-										className={`w-full max-w-[70px] px-3 py-2.5 text-center text-base font-bold border-2 rounded-lg bg-surface text-foreground focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-fast min-h-touch ${
+										className={`w-full px-3 py-3 text-center text-lg font-bold border-2 rounded-lg bg-surface text-foreground focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-fast min-h-touch ${
 											isPR ? "border-success" : "border-border"
 										}`}
 										placeholder="0"
 										min="0"
 									/>
 								</td>
-								<td className="py-3 px-2 text-center">
+								<td className="py-3 px-1 text-center">
 									<button
 										onClick={() => handleSetComplete(setIndex)}
 										disabled={!set.current.weight || !set.current.reps}
-										className="inline-flex items-center justify-center p-2 text-foreground-tertiary hover:text-success hover:bg-success-bg disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-fast rounded-lg min-h-touch min-w-touch touch-feedback relative overflow-hidden"
+										className="inline-flex items-center justify-center p-1.5 text-foreground-tertiary hover:text-success hover:bg-success-bg disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-fast rounded-lg min-h-touch min-w-touch touch-feedback relative overflow-hidden"
 										aria-label="Complete set"
-										title="Complete set & start rest timer"
+										title="Complete set"
 									>
 										<svg
 											className="w-5 h-5"
@@ -142,7 +142,7 @@ export default function SetTable({
 										</svg>
 									</button>
 								</td>
-								<td className="py-3 px-2 text-center">
+								<td className="py-3 px-1 text-center">
 									<button
 										onClick={() =>
 											onDeleteSet(
@@ -151,7 +151,7 @@ export default function SetTable({
 												setIndex
 											)
 										}
-										className="inline-flex items-center justify-center p-2 text-foreground-tertiary hover:text-error hover:bg-error-bg transition-all duration-fast rounded-lg min-h-touch min-w-touch touch-feedback relative overflow-hidden"
+										className="inline-flex items-center justify-center p-1.5 text-foreground-tertiary hover:text-error hover:bg-error-bg transition-all duration-fast rounded-lg min-h-touch min-w-touch touch-feedback relative overflow-hidden"
 										aria-label="Delete set"
 									>
 										<svg
