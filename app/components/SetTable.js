@@ -32,15 +32,15 @@ export default function SetTable({
 
 	return (
 		<div className="overflow-x-auto -mx-1 px-1">
-			<table className="w-full min-w-full">
+			<table className="w-full min-w-full" style={{ tableLayout: 'fixed' }}>
 				<thead>
 					<tr className="text-foreground-secondary text-sm font-bold border-b-2 border-border">
-						<th className="text-center py-3 px-1 w-[8%]">#</th>
-						<th className="text-left py-3 px-2 w-[20%]">Prev</th>
-						<th className="text-left py-3 px-2 w-[28%]">lbs</th>
-						<th className="text-left py-3 px-2 w-[28%]">Reps</th>
-						<th className="text-center py-3 px-1 w-[8%]"></th>
-						<th className="text-center py-3 px-1 w-[8%]"></th>
+						<th className="text-center py-3 px-1 w-[7%]">#</th>
+						<th className="text-center py-3 px-0.5 w-[20%]">Prev</th>
+						<th className="text-left py-3 px-2 w-[30%]">lbs</th>
+						<th className="text-left py-3 px-2 w-[25%]">Reps</th>
+						<th className="text-center py-3 px-0.5 w-[6%]"></th>
+						<th className="text-center py-3 px-0.5 w-[6%]"></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -54,20 +54,18 @@ export default function SetTable({
 								}`}
 							>
 								<td className="py-3 px-1 text-center">
-									<span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg font-bold text-xs ${
-										isPR ? "bg-success text-white" : "bg-surface text-foreground-secondary"
-									}`}>
+									<span className="inline-flex items-center justify-center rounded-md font-bold text-xs bg-surface text-foreground-secondary" style={{ width: '1rem', height: '1rem' }}>
 										{setIndex + 1}
 									</span>
 								</td>
-								<td className="py-3 px-2">
-									<div className="flex flex-col">
-										<span className="text-foreground-tertiary font-semibold text-xs whitespace-nowrap">
+								<td className="py-3 px-0.5 overflow-hidden">
+									<div className="flex flex-col items-center justify-center">
+										<span className="text-foreground-tertiary font-semibold text-[10px] leading-tight truncate max-w-full">
 											{set.previous.weight || 0}×{set.previous.reps || 0}
 										</span>
 										{isPR && (
 											<svg
-												className="w-3 h-3 text-success mt-0.5"
+												className="w-2 h-2 text-success mt-0.5"
 												fill="currentColor"
 												viewBox="0 0 24 24"
 											>
@@ -79,7 +77,7 @@ export default function SetTable({
 								<td className="py-3 px-2">
 									<input
 										type="number"
-										inputMode="decimal"
+										inputMode="numeric"
 										value={set.current.weight}
 										onChange={(e) =>
 											onUpdateSet(
@@ -95,7 +93,7 @@ export default function SetTable({
 										}`}
 										placeholder="0"
 										min="0"
-										step="0.5"
+										step="1"
 									/>
 								</td>
 								<td className="py-3 px-2">
@@ -123,7 +121,7 @@ export default function SetTable({
 									<button
 										onClick={() => handleSetComplete(setIndex)}
 										disabled={!set.current.weight || !set.current.reps}
-										className="inline-flex items-center justify-center p-1.5 text-foreground-tertiary hover:text-success hover:bg-success-bg disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-fast rounded-lg min-h-touch min-w-touch touch-feedback relative overflow-hidden"
+										className="inline-flex items-center justify-center p-1 text-foreground-tertiary hover:text-success hover:bg-success-bg disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-fast rounded-lg min-h-touch touch-feedback relative overflow-hidden"
 										aria-label="Complete set"
 										title="Complete set"
 									>
@@ -151,7 +149,7 @@ export default function SetTable({
 												setIndex
 											)
 										}
-										className="inline-flex items-center justify-center p-1.5 text-foreground-tertiary hover:text-error hover:bg-error-bg transition-all duration-fast rounded-lg min-h-touch min-w-touch touch-feedback relative overflow-hidden"
+										className="inline-flex items-center justify-center p-1 text-foreground-tertiary hover:text-error hover:bg-error-bg transition-all duration-fast rounded-lg min-h-touch touch-feedback relative overflow-hidden"
 										aria-label="Delete set"
 									>
 										<svg
