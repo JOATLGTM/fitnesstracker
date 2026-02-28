@@ -3,22 +3,14 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
+import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import WorkoutPlanCard from "../components/WorkoutPlanCard";
 import AddExerciseModal from "../components/AddExerciseModal";
 import TopBar from "../components/TopBar";
 import BottomBar from "../components/BottomBar";
 import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
-
-// Dynamically import DragDropContext and Droppable to avoid SSR issues
-const DragDropContext = dynamic(
-	() => import("react-beautiful-dnd").then((mod) => mod.DragDropContext),
-	{ ssr: false }
-);
-const Droppable = dynamic(
-	() => import("react-beautiful-dnd").then((mod) => mod.Droppable),
-	{ ssr: false }
-);
+import RestTimer from "../components/RestTimer";
+import PRCelebration from "../components/PRCelebration";
 
 export default function DashboardPage() {
 	const {
@@ -40,8 +32,23 @@ export default function DashboardPage() {
 	const [activePlanId, setActivePlanId] = useState(null);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 	const [planToDelete, setPlanToDelete] = useState(null);
+	
+	// Rest Timer state
+	const [isRestTimerVisible, setIsRestTimerVisible] = useState(false);
+	const [restDuration, setRestDuration] = useState(90);
+	
+	// PR Celebration state
+	const [isPRCelebrationVisible, setIsPRCelebrationVisible] = useState(false);
+	const [prData, setPRData] = useState(null);
+	
+	// Client-side only state for drag-drop
+	const [isMounted, setIsMounted] = useState(false);
 
 	// Load workout plans on mount
+	useEffect(() => {
+		setIsMounted(true);
+	}, []);
+
 	useEffect(() => {
 		if (user?.id) {
 			loadWorkoutPlans(user.id)
@@ -297,6 +304,21 @@ export default function DashboardPage() {
 		setExpandedPlanId(planId);
 	};
 
+	const handleSetComplete = (planId, exerciseId, exerciseName, setIndex, isPR, set) => {
+		// Show PR celebration if it's a PR
+		if (isPR && set.current.weight && set.current.reps) {
+			setPRData({
+				exercise: exerciseName,
+				weight: set.current.weight,
+				reps: set.current.reps,
+			});
+			setIsPRCelebrationVisible(true);
+		}
+		
+		// Show rest timer
+		setIsRestTimerVisible(true);
+	};
+
 	const handleSave = async () => {
 		if (!user?.id || workoutPlans.length === 0) return;
 
@@ -349,6 +371,7 @@ export default function DashboardPage() {
 				isSaving={isSaving}
 				onSave={handleSave}
 				onLogout={handleLogout}
+				onNavigateToProgress={() => router.push("/progress")}
 			/>
 
 			<div className="flex-1 flex flex-col pt-[72px] pb-[88px]">
@@ -383,48 +406,85 @@ export default function DashboardPage() {
 				</div>
 
 				<main className="flex-1 px-5 py-5 overflow-y-auto momentum-scroll">
-					<DragDropContext onDragEnd={handleDragEnd}>
-						<Droppable droppableId="workout-plans" type="PLANS">
-							{(provided) => (
-								<div
-									{...provided.droppableProps}
-									ref={provided.innerRef}
-									className="space-y-4 pb-4"
-								>
-									{workoutPlans.length === 0 ? (
-										<div className="text-center py-20 px-5 animate-fade-in">
-											<div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl flex items-center justify-center">
-												<svg
-													className="w-12 h-12 text-primary"
-													fill="none"
-													stroke="currentColor"
-													viewBox="0 0 24 24"
-												>
-													<path
-														strokeLinecap="round"
-														strokeLinejoin="round"
-														strokeWidth={2}
-														d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-													/>
-												</svg>
+					{!isMounted ? (
+						<div className="space-y-4 pb-4">
+							{workoutPlans.length === 0 ? (
+								<div className="text-center py-20 px-5 animate-fade-in">
+									<div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl flex items-center justify-center">
+										<svg
+											className="w-12 h-12 text-primary"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												strokeWidth={2}
+												d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+											/>
+										</svg>
+									</div>
+									<h3 className="text-2xl font-bold text-foreground mb-3">
+										No Workout Plans Yet
+									</h3>
+									<p className="text-foreground-secondary text-base mb-2">
+										Create your first plan to get started
+									</p>
+									<p className="text-foreground-tertiary text-sm">
+										Tap the button below to begin
+									</p>
+								</div>
+							) : (
+								<div className="text-center py-12">
+									<div className="inline-block w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+								</div>
+							)}
+						</div>
+					) : (
+						<DragDropContext onDragEnd={handleDragEnd}>
+							<Droppable 
+								droppableId="workout-plans" 
+								type="PLANS" 
+								isDropDisabled={false}
+								isCombineEnabled={false}
+								ignoreContainerClipping={false}
+							>
+								{(provided) => (
+									<div
+										{...provided.droppableProps}
+										ref={provided.innerRef}
+										className="space-y-4 pb-4"
+									>
+										{workoutPlans.length === 0 ? (
+											<div className="text-center py-20 px-5 animate-fade-in">
+												<div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl flex items-center justify-center">
+													<svg
+														className="w-12 h-12 text-primary"
+														fill="none"
+														stroke="currentColor"
+														viewBox="0 0 24 24"
+													>
+														<path
+															strokeLinecap="round"
+															strokeLinejoin="round"
+															strokeWidth={2}
+															d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+														/>
+													</svg>
+												</div>
+												<h3 className="text-2xl font-bold text-foreground mb-3">
+													No Workout Plans Yet
+												</h3>
+												<p className="text-foreground-secondary text-base mb-2">
+													Create your first plan to get started
+												</p>
+												<p className="text-foreground-tertiary text-sm">
+													Tap the button below to begin
+												</p>
 											</div>
-											<h3 className="text-2xl font-bold text-foreground mb-3">
-												No Workout Plans Yet
-											</h3>
-											<p className="text-foreground-secondary text-base mb-2">
-												Create your first plan to get started
-											</p>
-											<p className="text-foreground-tertiary text-sm">
-												Tap the button below to begin
-											</p>
-										</div>
-									) : (
-										workoutPlans
-											.filter(
-												(plan) =>
-													plan.id === expandedPlanId
-											)
-											.map((plan, index) => (
+										) : (
+											workoutPlans.map((plan, index) => (
 												<WorkoutPlanCard
 													key={plan.id}
 													plan={plan}
@@ -443,14 +503,16 @@ export default function DashboardPage() {
 													onAddSet={addSet}
 													onUpdateSet={updateSet}
 													onDeleteSet={deleteSet}
+													onSetComplete={handleSetComplete}
 												/>
 											))
-									)}
-									{provided.placeholder}
-								</div>
-							)}
-						</Droppable>
-					</DragDropContext>
+										)}
+										{provided.placeholder}
+									</div>
+								)}
+							</Droppable>
+						</DragDropContext>
+					)}
 				</main>
 			</div>
 
@@ -478,6 +540,23 @@ export default function DashboardPage() {
 					workoutPlans.find((plan) => plan.id === planToDelete)
 						?.name || ""
 				}
+			/>
+
+			<RestTimer
+				isVisible={isRestTimerVisible}
+				onClose={() => setIsRestTimerVisible(false)}
+				defaultDuration={restDuration}
+			/>
+
+			<PRCelebration
+				isVisible={isPRCelebrationVisible}
+				exercise={prData?.exercise}
+				weight={prData?.weight}
+				reps={prData?.reps}
+				onClose={() => {
+					setIsPRCelebrationVisible(false);
+					setPRData(null);
+				}}
 			/>
 		</div>
 	);

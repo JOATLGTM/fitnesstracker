@@ -12,6 +12,7 @@ export default function WorkoutPlanCard({
 	onAddSet,
 	onUpdateSet,
 	onDeleteSet,
+	onSetComplete,
 }) {
 	return (
 		<Draggable key={plan.id} draggableId={plan.id} index={index}>
@@ -94,6 +95,7 @@ export default function WorkoutPlanCard({
 											onAddSet={onAddSet}
 											onUpdateSet={onUpdateSet}
 											onDeleteSet={onDeleteSet}
+											onSetComplete={onSetComplete}
 										/>
 									)
 								)

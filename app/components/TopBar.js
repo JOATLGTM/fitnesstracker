@@ -4,6 +4,7 @@ export default function TopBar({
 	isSaving,
 	onSave,
 	onLogout,
+	onNavigateToProgress,
 }) {
 	return (
 		<header className="glass-strong border-b border-border fixed top-0 left-0 right-0 z-fixed safe-top animate-slide-down">
@@ -67,6 +68,28 @@ export default function TopBar({
 								{saveStatus}
 							</span>
 						</div>
+					)}
+					{onNavigateToProgress && (
+						<button
+							onClick={onNavigateToProgress}
+							className="p-2.5 text-foreground-secondary hover:text-foreground hover:bg-surface-hover rounded-lg transition-all duration-fast min-h-touch min-w-touch flex items-center justify-center touch-feedback relative overflow-hidden"
+							aria-label="View progress charts"
+							title="Progress Charts"
+						>
+							<svg
+								className="w-5 h-5"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={2.5}
+									d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+								/>
+							</svg>
+						</button>
 					)}
 					<button
 						onClick={onSave}
