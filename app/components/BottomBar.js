@@ -5,33 +5,70 @@ export default function BottomBar({
 	onCreatePlan,
 	onStartAddingPlan,
 }) {
+	const handleKeyPress = (e) => {
+		if (e.key === "Enter" && newPlanName.trim()) {
+			onCreatePlan();
+		}
+	};
+
 	return (
-		<div className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-800 p-4">
-			{isAddingPlan ? (
-				<div className="flex gap-2">
-					<input
-						type="text"
-						value={newPlanName}
-						onChange={(e) => onNewPlanNameChange(e.target.value)}
-						placeholder="Workout plan name"
-						className="flex-1 px-4 py-3 rounded-xl border border-gray-700 text-lg bg-white text-black focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-shadow placeholder-gray-500"
-						style={{ WebkitAppearance: "none" }}
-					/>
+		<div className="fixed bottom-0 left-0 right-0 glass-strong border-t border-border safe-bottom z-fixed animate-slide-up">
+			<div className="px-5 py-4">
+				{isAddingPlan ? (
+					<div className="flex gap-3 animate-scale-in">
+						<input
+							type="text"
+							value={newPlanName}
+							onChange={(e) => onNewPlanNameChange(e.target.value)}
+							onKeyPress={handleKeyPress}
+							placeholder="Workout plan name"
+							className="flex-1 px-5 py-4 rounded-xl border-2 border-border text-lg font-medium bg-surface text-foreground focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-fast placeholder:text-foreground-tertiary min-h-touch-comfortable"
+							style={{ WebkitAppearance: "none" }}
+							autoFocus
+							autoComplete="off"
+						/>
+						<button
+							onClick={onCreatePlan}
+							disabled={!newPlanName.trim()}
+							className="px-6 py-4 bg-primary text-white rounded-xl text-lg font-bold hover:bg-primary-hover active:bg-primary-active active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-fast shadow-lg min-h-touch-comfortable min-w-touch-comfortable touch-feedback relative overflow-hidden flex items-center justify-center"
+						>
+							<svg
+								className="w-6 h-6"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={3}
+									d="M5 13l4 4L19 7"
+								/>
+							</svg>
+						</button>
+					</div>
+				) : (
 					<button
-						onClick={onCreatePlan}
-						className="px-6 py-3 bg-red-600 text-white rounded-xl text-lg font-medium hover:bg-red-700 active:bg-red-800 transition-colors"
+						onClick={onStartAddingPlan}
+						className="w-full py-4 bg-primary text-white rounded-xl text-lg font-bold hover:bg-primary-hover active:bg-primary-active active:scale-[0.98] transition-all duration-fast shadow-lg min-h-touch-comfortable touch-feedback relative overflow-hidden flex items-center justify-center gap-2"
 					>
-						Create
+						<svg
+							className="w-6 h-6"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={3}
+								d="M12 4v16m8-8H4"
+							/>
+						</svg>
+						<span>New Workout Plan</span>
 					</button>
-				</div>
-			) : (
-				<button
-					onClick={onStartAddingPlan}
-					className="w-full py-3 bg-red-600 text-white rounded-xl text-lg font-medium hover:bg-red-700 active:bg-red-800 transition-colors"
-				>
-					+ New Workout Plan
-				</button>
-			)}
+				)}
+			</div>
 		</div>
 	);
 }

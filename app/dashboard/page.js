@@ -342,7 +342,7 @@ export default function DashboardPage() {
 	};
 
 	return (
-		<div className="min-h-screen bg-black flex flex-col">
+		<div className="min-h-screen bg-background flex flex-col safe-top safe-bottom">
 			<TopBar
 				username={user?.username}
 				saveStatus={saveStatus}
@@ -351,42 +351,71 @@ export default function DashboardPage() {
 				onLogout={handleLogout}
 			/>
 
-			<div className="flex-1 flex flex-col mt-16 pb-24 mt-24">
-				{/* Horizontal Workout List */}
-				<div className="px-4 py-2 overflow-x-auto">
-					<div className="flex gap-4 min-w-max">
+			<div className="flex-1 flex flex-col pt-[72px] pb-[88px]">
+				{/* Horizontal Workout Plan Tabs */}
+				<div className="px-5 py-4 overflow-x-auto momentum-scroll border-b border-border bg-background-secondary">
+					<div className="flex gap-3 min-w-max">
 						{workoutPlans.map((plan) => (
 							<button
 								key={plan.id}
 								onClick={() => togglePlan(plan.id)}
-								className={`px-6 py-3 rounded-xl text-lg font-medium transition-colors ${
+								className={`px-5 py-3 rounded-xl text-base font-bold transition-all duration-fast whitespace-nowrap min-h-touch touch-feedback relative overflow-hidden ${
 									expandedPlanId === plan.id
-										? "bg-red-600 text-white"
-										: "bg-gray-800 text-gray-300 hover:bg-gray-700"
+										? "bg-primary text-white shadow-glow"
+										: "bg-surface text-foreground-secondary hover:bg-surface-hover hover:text-foreground active:bg-surface-active"
 								}`}
 							>
-								{plan.name}
+								<span className="flex items-center gap-2">
+									{plan.name}
+									{plan.exercises?.length > 0 && (
+										<span className={`text-xs font-bold px-2 py-0.5 rounded-md ${
+											expandedPlanId === plan.id
+												? "bg-white/20 text-white"
+												: "bg-surface-active text-foreground-tertiary"
+										}`}>
+											{plan.exercises.length}
+										</span>
+									)}
+								</span>
 							</button>
 						))}
 					</div>
 				</div>
 
-				<main className="flex-1 px-4 py-6 overflow-y-auto">
+				<main className="flex-1 px-5 py-5 overflow-y-auto momentum-scroll">
 					<DragDropContext onDragEnd={handleDragEnd}>
 						<Droppable droppableId="workout-plans" type="PLANS">
 							{(provided) => (
 								<div
 									{...provided.droppableProps}
 									ref={provided.innerRef}
-									className="space-y-4"
+									className="space-y-4 pb-4"
 								>
 									{workoutPlans.length === 0 ? (
-										<div className="text-center py-12">
-											<p className="text-gray-400 text-lg">
-												There are no workout plans yet
+										<div className="text-center py-20 px-5 animate-fade-in">
+											<div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl flex items-center justify-center">
+												<svg
+													className="w-12 h-12 text-primary"
+													fill="none"
+													stroke="currentColor"
+													viewBox="0 0 24 24"
+												>
+													<path
+														strokeLinecap="round"
+														strokeLinejoin="round"
+														strokeWidth={2}
+														d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+													/>
+												</svg>
+											</div>
+											<h3 className="text-2xl font-bold text-foreground mb-3">
+												No Workout Plans Yet
+											</h3>
+											<p className="text-foreground-secondary text-base mb-2">
+												Create your first plan to get started
 											</p>
-											<p className="text-gray-500 text-sm mt-2">
-												Create a new plan to get started
+											<p className="text-foreground-tertiary text-sm">
+												Tap the button below to begin
 											</p>
 										</div>
 									) : (
