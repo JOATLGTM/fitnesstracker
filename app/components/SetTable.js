@@ -32,14 +32,43 @@ export default function SetTable({
 
 	return (
 		<div className="overflow-x-auto -mx-1 px-1">
-			<table className="w-full min-w-full" style={{ tableLayout: 'fixed' }}>
+			<div className="flex items-center justify-start mb-2 px-1">
+				<button
+					onClick={() =>
+						handleSetComplete(Math.max(sets.length - 1, 0))
+					}
+					disabled={
+						!sets.length ||
+						!sets[sets.length - 1].current.weight ||
+						!sets[sets.length - 1].current.reps
+					}
+					className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-success-bg text-success hover:bg-success-bg/80 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-fast touch-feedback relative overflow-hidden"
+					aria-label="Complete latest set"
+					title="Complete latest set"
+				>
+					<svg
+						className="w-4 h-4 mr-1"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							strokeWidth={2.3}
+							d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+						/>
+					</svg>
+					<span>Complete set</span>
+				</button>
+			</div>
+			<table className="w-full min-w-full" style={{ tableLayout: "fixed" }}>
 				<thead>
 					<tr className="text-foreground-secondary text-sm font-bold border-b-2 border-border">
 						<th className="text-center py-3 px-1 w-[7%]">#</th>
 						<th className="text-center py-3 px-0.5 w-[20%]">Prev</th>
 						<th className="text-left py-3 px-2 w-[30%]">lbs</th>
 						<th className="text-left py-3 px-2 w-[25%]">Reps</th>
-						<th className="text-center py-3 px-0.5 w-[6%]"></th>
 						<th className="text-center py-3 px-0.5 w-[6%]"></th>
 					</tr>
 				</thead>
@@ -78,14 +107,18 @@ export default function SetTable({
 									<input
 										type="number"
 										inputMode="numeric"
-										value={set.current.weight}
+										value={
+											set.current.weight === 0
+												? ""
+												: set.current.weight
+										}
 										onChange={(e) =>
 											onUpdateSet(
 												planId,
 												exerciseId,
 												setIndex,
 												"weight",
-												Number(e.target.value)
+												e.target.value
 											)
 										}
 										className={`w-full px-3 py-3 text-center text-lg font-bold border-2 rounded-lg bg-surface text-foreground focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-fast min-h-touch ${
@@ -93,7 +126,7 @@ export default function SetTable({
 										}`}
 										placeholder="0"
 										min="0"
-										step="1"
+										step="0.5"
 									/>
 								</td>
 								<td className="py-3 px-2">
@@ -116,29 +149,6 @@ export default function SetTable({
 										placeholder="0"
 										min="0"
 									/>
-								</td>
-								<td className="py-3 px-1 text-center">
-									<button
-										onClick={() => handleSetComplete(setIndex)}
-										disabled={!set.current.weight || !set.current.reps}
-										className="inline-flex items-center justify-center p-1 text-foreground-tertiary hover:text-success hover:bg-success-bg disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-fast rounded-lg min-h-touch touch-feedback relative overflow-hidden"
-										aria-label="Complete set"
-										title="Complete set"
-									>
-										<svg
-											className="w-5 h-5"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
-											<path
-												strokeLinecap="round"
-												strokeLinejoin="round"
-												strokeWidth={2.5}
-												d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-											/>
-										</svg>
-									</button>
 								</td>
 								<td className="py-3 px-1 text-center">
 									<button

@@ -5,17 +5,54 @@ export default function TopBar({
 	onSave,
 	onLogout,
 	onNavigateToProgress,
+	timerSeconds,
+	isTimerRunning,
+	onTimerReset,
 }) {
+	const formatTime = (seconds) => {
+		const totalSeconds = Math.max(0, seconds || 0);
+		const mins = Math.floor(totalSeconds / 60);
+		const secs = totalSeconds % 60;
+		return `${mins}:${secs.toString().padStart(2, "0")}`;
+	};
+
 	return (
 		<header className="glass-strong border-b border-border fixed top-0 left-0 right-0 z-fixed safe-top animate-slide-down">
 			<div className="px-5 py-4 flex justify-between items-center gap-4">
 				<div className="flex-1 min-w-0">
-					<h1 className="text-xl font-bold text-foreground tracking-tight truncate">
-						GET THOSE GAINS!
-					</h1>
-					{username && (
-						<p className="text-xs text-foreground-tertiary font-medium mt-0.5 truncate">
-							@{username}
+					{typeof timerSeconds === "number" && timerSeconds > 0 ? (
+						<button
+							type="button"
+							onClick={onTimerReset}
+							className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold min-h-touch touch-feedback relative overflow-hidden ${
+								isTimerRunning
+									? "bg-success-bg/20 border-success text-success"
+									: "bg-surface border-border text-foreground-secondary hover:bg-surface-hover"
+							}`}
+						>
+							<svg
+								className="w-4 h-4"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={2.3}
+									d="M12 8v4l3 3m4-3a7 7 0 11-7-7"
+								/>
+							</svg>
+							<span className="text-sm font-bold">
+								{formatTime(timerSeconds)}
+							</span>
+							<span className="text-[11px] uppercase tracking-wide">
+								Rest
+							</span>
+						</button>
+					) : (
+						<p className="text-xs text-foreground-tertiary font-medium truncate">
+							Rest timer ready
 						</p>
 					)}
 				</div>

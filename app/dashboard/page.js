@@ -3,14 +3,14 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
-import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import WorkoutPlanCard from "../components/WorkoutPlanCard";
 import AddExerciseModal from "../components/AddExerciseModal";
 import TopBar from "../components/TopBar";
 import BottomBar from "../components/BottomBar";
 import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
-import RestTimer from "../components/RestTimer";
 import PRCelebration from "../components/PRCelebration";
+
+const LAST_ACTIVE_PLAN_KEY_PREFIX = "cvfitnesstracker_last_active_plan";
 
 export default function DashboardPage() {
 	const {
@@ -32,22 +32,37 @@ export default function DashboardPage() {
 	const [activePlanId, setActivePlanId] = useState(null);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 	const [planToDelete, setPlanToDelete] = useState(null);
-	
-	// Rest Timer state
-	const [isRestTimerVisible, setIsRestTimerVisible] = useState(false);
-	const [restDuration, setRestDuration] = useState(90);
-	
-	// PR Celebration state
-	const [isPRCelebrationVisible, setIsPRCelebrationVisible] = useState(false);
-	const [prData, setPRData] = useState(null);
-	
-	// Client-side only state for drag-drop
-	const [isMounted, setIsMounted] = useState(false);
 
-	// Load workout plans on mount
+	// Header Rest Timer state
+	const [restDuration] = useState(90);
+	const [restTimeLeft, setRestTimeLeft] = useState(0);
+	const [isRestTimerRunning, setIsRestTimerRunning] = useState(false);
+
+	// PR Celebration state
+	const [isPRCelebrationVisible, setIsPRCelebrationVisible] =
+		useState(false);
+	const [prData, setPRData] = useState(null);
+
+	// Header rest timer countdown
 	useEffect(() => {
-		setIsMounted(true);
-	}, []);
+		if (!isRestTimerRunning || restTimeLeft <= 0) {
+			return;
+		}
+
+		const intervalId = setInterval(() => {
+			setRestTimeLeft((prev) => {
+				if (prev <= 1) {
+					setIsRestTimerRunning(false);
+					return 0;
+				}
+				return prev - 1;
+			});
+		}, 1000);
+
+		return () => {
+			clearInterval(intervalId);
+		};
+	}, [isRestTimerRunning, restTimeLeft]);
 
 	useEffect(() => {
 		if (user?.id) {
@@ -55,8 +70,30 @@ export default function DashboardPage() {
 				.then((plans) => {
 					if (Array.isArray(plans)) {
 						setWorkoutPlans(plans);
+
 						if (plans.length > 0) {
-							setExpandedPlanId(plans[0].id);
+							let initialPlanId = plans[0].id;
+
+							try {
+								const storageKey = `${LAST_ACTIVE_PLAN_KEY_PREFIX}_${user.id}`;
+								const storedPlanId =
+									window.localStorage.getItem(storageKey);
+								if (
+									storedPlanId &&
+									plans.some(
+										(plan) => plan.id === storedPlanId
+									)
+								) {
+									initialPlanId = storedPlanId;
+								}
+							} catch (error) {
+								console.error(
+									"Error reading last active plan from storage:",
+									error
+								);
+							}
+
+							setExpandedPlanId(initialPlanId);
 						}
 					}
 				})
@@ -88,10 +125,23 @@ export default function DashboardPage() {
 			exercises: [],
 		};
 
-		setWorkoutPlans([...workoutPlans, newPlan]);
+		const updatedPlans = [...workoutPlans, newPlan];
+		setWorkoutPlans(updatedPlans);
 		setNewPlanName("");
 		setIsAddingPlan(false);
 		setExpandedPlanId(newPlan.id);
+
+		if (user?.id) {
+			try {
+				const storageKey = `${LAST_ACTIVE_PLAN_KEY_PREFIX}_${user.id}`;
+				window.localStorage.setItem(storageKey, newPlan.id);
+			} catch (error) {
+				console.error(
+					"Error saving last active plan to storage:",
+					error
+				);
+			}
+		}
 	};
 
 	const handleDeletePlan = (planId) => {
@@ -101,11 +151,26 @@ export default function DashboardPage() {
 
 	const confirmDeletePlan = () => {
 		if (planToDelete) {
-			setWorkoutPlans(
-				workoutPlans.filter((plan) => plan.id !== planToDelete)
+			const remainingPlans = workoutPlans.filter(
+				(plan) => plan.id !== planToDelete
 			);
+			setWorkoutPlans(remainingPlans);
+
 			if (expandedPlanId === planToDelete) {
-				setExpandedPlanId(workoutPlans[0]?.id || null);
+				const nextPlanId = remainingPlans[0]?.id || null;
+				setExpandedPlanId(nextPlanId);
+
+				if (user?.id && nextPlanId) {
+					try {
+						const storageKey = `${LAST_ACTIVE_PLAN_KEY_PREFIX}_${user.id}`;
+						window.localStorage.setItem(storageKey, nextPlanId);
+					} catch (error) {
+						console.error(
+							"Error updating last active plan in storage:",
+							error
+						);
+					}
+				}
 			}
 			setIsDeleteModalOpen(false);
 			setPlanToDelete(null);
@@ -155,33 +220,6 @@ export default function DashboardPage() {
 				return plan;
 			})
 		);
-	};
-
-	const handleDragEnd = (result) => {
-		if (!result.destination) return;
-
-		const { source, destination, type } = result;
-
-		if (type === "PLANS") {
-			const items = Array.from(workoutPlans);
-			const [reorderedItem] = items.splice(source.index, 1);
-			items.splice(destination.index, 0, reorderedItem);
-			setWorkoutPlans(items);
-		} else if (type === "EXERCISES") {
-			const planId = source.droppableId;
-			const plan = workoutPlans.find((p) => p.id === planId);
-			if (!plan) return;
-
-			const exercises = Array.from(plan.exercises);
-			const [reorderedItem] = exercises.splice(source.index, 1);
-			exercises.splice(destination.index, 0, reorderedItem);
-
-			setWorkoutPlans(
-				workoutPlans.map((p) =>
-					p.id === planId ? { ...p, exercises: exercises } : p
-				)
-			);
-		}
 	};
 
 	const addExercise = (planId) => {
@@ -251,19 +289,11 @@ export default function DashboardPage() {
 	};
 
 	const updateSet = (planId, exerciseId, setIndex, field, value) => {
-		// Convert value to string to handle leading zeros
-		const stringValue = value.toString();
+		const numericValue =
+			value === "" || Number.isNaN(Number(value))
+				? 0
+				: parseFloat(value);
 
-		// If the value starts with '0' and has more than one digit, remove the leading zero
-		const processedValue =
-			stringValue.startsWith("0") && stringValue.length > 1
-				? stringValue.slice(1)
-				: stringValue;
-
-		// Convert back to number for storage
-		const numericValue = parseFloat(processedValue);
-
-		// Update the state with the processed value
 		setWorkoutPlans(
 			workoutPlans.map((plan) => {
 				if (plan.id === planId) {
@@ -302,9 +332,80 @@ export default function DashboardPage() {
 
 	const togglePlan = (planId) => {
 		setExpandedPlanId(planId);
+		if (user?.id) {
+			try {
+				const storageKey = `${LAST_ACTIVE_PLAN_KEY_PREFIX}_${user.id}`;
+				window.localStorage.setItem(storageKey, planId);
+			} catch (error) {
+				console.error(
+					"Error saving last active plan to storage:",
+					error
+				);
+			}
+		}
 	};
 
-	const handleSetComplete = (planId, exerciseId, exerciseName, setIndex, isPR, set) => {
+	const movePlan = (planId, direction) => {
+		const index = workoutPlans.findIndex((plan) => plan.id === planId);
+		if (index === -1) return;
+
+		const newIndex = direction === "up" ? index - 1 : index + 1;
+		if (newIndex < 0 || newIndex >= workoutPlans.length) return;
+
+		const updatedPlans = [...workoutPlans];
+		const [movedPlan] = updatedPlans.splice(index, 1);
+		updatedPlans.splice(newIndex, 0, movedPlan);
+
+		setWorkoutPlans(updatedPlans);
+
+		if (user?.id) {
+			try {
+				const storageKey = `${LAST_ACTIVE_PLAN_KEY_PREFIX}_${user.id}`;
+				window.localStorage.setItem(storageKey, movedPlan.id);
+			} catch (error) {
+				console.error(
+					"Error saving last active plan to storage:",
+					error
+				);
+			}
+		}
+	};
+
+	const moveExercise = (planId, exerciseId, direction) => {
+		setWorkoutPlans(
+			workoutPlans.map((plan) => {
+				if (plan.id !== planId) return plan;
+
+				const exercises = [...plan.exercises];
+				const index = exercises.findIndex(
+					(ex) => ex.id === exerciseId
+				);
+				if (index === -1) return plan;
+
+				const newIndex = direction === "up" ? index - 1 : index + 1;
+				if (newIndex < 0 || newIndex >= exercises.length) {
+					return plan;
+				}
+
+				const [movedExercise] = exercises.splice(index, 1);
+				exercises.splice(newIndex, 0, movedExercise);
+
+				return {
+					...plan,
+					exercises,
+				};
+			})
+		);
+	};
+
+	const handleSetComplete = (
+		planId,
+		exerciseId,
+		exerciseName,
+		setIndex,
+		isPR,
+		set
+	) => {
 		// Show PR celebration if it's a PR
 		if (isPR && set.current.weight && set.current.reps) {
 			setPRData({
@@ -314,9 +415,10 @@ export default function DashboardPage() {
 			});
 			setIsPRCelebrationVisible(true);
 		}
-		
-		// Show rest timer
-		setIsRestTimerVisible(true);
+
+		// Start header rest timer
+		setRestTimeLeft(restDuration);
+		setIsRestTimerRunning(true);
 	};
 
 	const handleSave = async () => {
@@ -372,6 +474,12 @@ export default function DashboardPage() {
 				onSave={handleSave}
 				onLogout={handleLogout}
 				onNavigateToProgress={() => router.push("/progress")}
+				timerSeconds={restTimeLeft}
+				isTimerRunning={isRestTimerRunning}
+				onTimerReset={() => {
+					setRestTimeLeft(restDuration);
+					setIsRestTimerRunning(false);
+				}}
 			/>
 
 			<div className="flex-1 flex flex-col pt-[72px] pb-[88px]">
@@ -406,115 +514,62 @@ export default function DashboardPage() {
 				</div>
 
 				<main className="flex-1 px-5 py-5 overflow-y-auto momentum-scroll">
-					{!isMounted ? (
-						<div className="space-y-4 pb-4">
-							{workoutPlans.length === 0 ? (
-								<div className="text-center py-20 px-5 animate-fade-in">
-									<div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl flex items-center justify-center">
-										<svg
-											className="w-12 h-12 text-primary"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
-											<path
-												strokeLinecap="round"
-												strokeLinejoin="round"
-												strokeWidth={2}
-												d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-											/>
-										</svg>
-									</div>
-									<h3 className="text-2xl font-bold text-foreground mb-3">
-										No Workout Plans Yet
-									</h3>
-									<p className="text-foreground-secondary text-base mb-2">
-										Create your first plan to get started
-									</p>
-									<p className="text-foreground-tertiary text-sm">
-										Tap the button below to begin
-									</p>
-								</div>
-							) : (
-								<div className="text-center py-12">
-									<div className="inline-block w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-								</div>
-							)}
-						</div>
-					) : (
-						<DragDropContext onDragEnd={handleDragEnd}>
-							<Droppable 
-								droppableId="workout-plans" 
-								type="PLANS" 
-								isDropDisabled={false}
-								isCombineEnabled={false}
-								ignoreContainerClipping={false}
-							>
-								{(provided) => (
-									<div
-										{...provided.droppableProps}
-										ref={provided.innerRef}
-										className="space-y-4 pb-4"
+					<div className="space-y-4 pb-4">
+						{workoutPlans.length === 0 ? (
+							<div className="text-center py-20 px-5 animate-fade-in">
+								<div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl flex items-center justify-center">
+									<svg
+										className="w-12 h-12 text-primary"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
 									>
-										{workoutPlans.length === 0 ? (
-											<div className="text-center py-20 px-5 animate-fade-in">
-												<div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl flex items-center justify-center">
-													<svg
-														className="w-12 h-12 text-primary"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-													>
-														<path
-															strokeLinecap="round"
-															strokeLinejoin="round"
-															strokeWidth={2}
-															d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-														/>
-													</svg>
-												</div>
-												<h3 className="text-2xl font-bold text-foreground mb-3">
-													No Workout Plans Yet
-												</h3>
-												<p className="text-foreground-secondary text-base mb-2">
-													Create your first plan to get started
-												</p>
-												<p className="text-foreground-tertiary text-sm">
-													Tap the button below to begin
-												</p>
-											</div>
-										) : (
-											workoutPlans
-												.filter((plan) => plan.id === expandedPlanId)
-												.map((plan, index) => (
-													<WorkoutPlanCard
-														key={plan.id}
-														plan={plan}
-														index={index}
-														expandedPlanId={
-															expandedPlanId
-														}
-														onTogglePlan={togglePlan}
-														onDeletePlan={
-															handleDeletePlan
-														}
-														onAddExercise={addExercise}
-														onDeleteExercise={
-															deleteExercise
-														}
-														onAddSet={addSet}
-														onUpdateSet={updateSet}
-														onDeleteSet={deleteSet}
-														onSetComplete={handleSetComplete}
-													/>
-												))
-										)}
-										{provided.placeholder}
-									</div>
-								)}
-							</Droppable>
-						</DragDropContext>
-					)}
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+										/>
+									</svg>
+								</div>
+								<h3 className="text-2xl font-bold text-foreground mb-3">
+									No Workout Plans Yet
+								</h3>
+								<p className="text-foreground-secondary text-base mb-2">
+									Create your first plan to get started
+								</p>
+								<p className="text-foreground-tertiary text-sm">
+									Tap the button below to begin
+								</p>
+							</div>
+						) : (
+							workoutPlans
+								.filter((plan) => plan.id === expandedPlanId)
+								.map((plan, index) => (
+									<WorkoutPlanCard
+										key={plan.id}
+										plan={plan}
+										index={index}
+										expandedPlanId={expandedPlanId}
+										onTogglePlan={togglePlan}
+										onDeletePlan={handleDeletePlan}
+										onAddExercise={addExercise}
+										onDeleteExercise={deleteExercise}
+										onAddSet={addSet}
+										onUpdateSet={updateSet}
+										onDeleteSet={deleteSet}
+										onSetComplete={handleSetComplete}
+										onMovePlanUp={() =>
+											movePlan(plan.id, "up")
+										}
+										onMovePlanDown={() =>
+											movePlan(plan.id, "down")
+										}
+										onMoveExercise={moveExercise}
+									/>
+								))
+						)}
+					</div>
 				</main>
 			</div>
 
@@ -542,12 +597,6 @@ export default function DashboardPage() {
 					workoutPlans.find((plan) => plan.id === planToDelete)
 						?.name || ""
 				}
-			/>
-
-			<RestTimer
-				isVisible={isRestTimerVisible}
-				onClose={() => setIsRestTimerVisible(false)}
-				defaultDuration={restDuration}
 			/>
 
 			<PRCelebration
