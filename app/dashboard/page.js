@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 import WorkoutPlanCard from "../components/WorkoutPlanCard";
@@ -409,28 +409,24 @@ export default function DashboardPage() {
 		);
 	};
 
-	const handleSetComplete = (
-		planId,
-		exerciseId,
-		exerciseName,
-		setIndex,
-		isPR,
-		set
-	) => {
-		// Show PR celebration if it's a PR
-		if (isPR && set.current.weight && set.current.reps) {
-			setPRData({
-				exercise: exerciseName,
-				weight: set.current.weight,
-				reps: set.current.reps,
-			});
-			setIsPRCelebrationVisible(true);
-		}
+	const handleSetComplete = useCallback(
+		(planId, exerciseId, exerciseName, setIndex, isPR, set) => {
+			// Show PR celebration if it's a PR
+			if (isPR && set?.current?.weight && set?.current?.reps) {
+				setPRData({
+					exercise: exerciseName,
+					weight: set.current.weight,
+					reps: set.current.reps,
+				});
+				setIsPRCelebrationVisible(true);
+			}
 
-		// Start header rest timer
-		setRestTimeLeft(restDuration);
-		setIsRestTimerRunning(true);
-	};
+			// Start header rest timer (for any exercise in any plan)
+			setRestTimeLeft(restDuration);
+			setIsRestTimerRunning(true);
+		},
+		[restDuration]
+	);
 
 	const handleSave = async () => {
 		if (!user?.id || workoutPlans.length === 0) return;

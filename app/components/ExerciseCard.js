@@ -98,6 +98,7 @@ export default function ExerciseCard({
 			{/* Sets Table */}
 			<div className="space-y-4">
 				<SetTable
+					key={`${planId}-${exercise.id}`}
 					sets={exercise.sets}
 					planId={planId}
 					exerciseId={exercise.id}
