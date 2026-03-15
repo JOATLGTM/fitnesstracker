@@ -371,6 +371,17 @@ export default function DashboardPage() {
 		}
 	};
 
+	const renamePlan = (planId, newName) => {
+		const trimmed = typeof newName === "string" ? newName.trim() : "";
+		if (!trimmed) return;
+
+		setWorkoutPlans(
+			workoutPlans.map((plan) =>
+				plan.id === planId ? { ...plan, name: trimmed } : plan
+			)
+		);
+	};
+
 	const moveExercise = (planId, exerciseId, direction) => {
 		setWorkoutPlans(
 			workoutPlans.map((plan) => {
@@ -465,15 +476,42 @@ export default function DashboardPage() {
 		}
 	};
 
+	const showSuccessBanner = saveStatus && saveStatus.includes("success");
+
 	return (
 		<div className="min-h-screen bg-background flex flex-col safe-top safe-bottom">
+			{/* Fixed top success banner */}
+			{showSuccessBanner && (
+				<div
+					className="fixed top-0 left-0 right-0 z-toast safe-top bg-success-bg text-success border-b border-success/30 flex flex-col min-h-[4.5rem] animate-slide-down shadow-md"
+					role="status"
+					aria-live="polite"
+				>
+					<div className="flex-1 min-h-[1.5rem]" aria-hidden />
+					<div className="flex items-center justify-center gap-2 px-6 flex-shrink-0">
+						<svg
+							className="w-5 h-5 flex-shrink-0"
+							fill="currentColor"
+							viewBox="0 0 20 20"
+						>
+							<path
+								fillRule="evenodd"
+								d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+								clipRule="evenodd"
+							/>
+						</svg>
+						<span className="font-bold text-sm">{saveStatus}</span>
+					</div>
+					<div className="flex-1 min-h-[1.5rem]" aria-hidden />
+				</div>
+			)}
+
 			<TopBar
 				username={user?.username}
 				saveStatus={saveStatus}
 				isSaving={isSaving}
 				onSave={handleSave}
 				onLogout={handleLogout}
-				onNavigateToProgress={() => router.push("/progress")}
 				timerSeconds={restTimeLeft}
 				isTimerRunning={isRestTimerRunning}
 				onTimerReset={() => {
@@ -566,6 +604,7 @@ export default function DashboardPage() {
 											movePlan(plan.id, "down")
 										}
 										onMoveExercise={moveExercise}
+										onRenamePlan={renamePlan}
 									/>
 								))
 						)}
