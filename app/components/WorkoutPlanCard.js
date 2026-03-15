@@ -93,9 +93,6 @@ export default function WorkoutPlanCard({
 								<h2 className="text-xl font-bold truncate">
 									{plan.name}
 								</h2>
-								<span className="text-sm font-semibold text-foreground-tertiary px-2.5 py-1 bg-surface rounded-lg flex-shrink-0">
-									{plan.exercises?.length || 0}
-								</span>
 							</button>
 							{typeof onRenamePlan === "function" && (
 								<button

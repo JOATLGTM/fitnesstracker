@@ -534,18 +534,7 @@ export default function DashboardPage() {
 										: "bg-surface text-foreground-secondary hover:bg-surface-hover hover:text-foreground active:bg-surface-active"
 								}`}
 							>
-								<span className="flex items-center gap-2">
-									{plan.name}
-									{plan.exercises?.length > 0 && (
-										<span className={`text-xs font-bold px-2 py-0.5 rounded-md ${
-											expandedPlanId === plan.id
-												? "bg-white/20 text-white"
-												: "bg-surface-active text-foreground-tertiary"
-										}`}>
-											{plan.exercises.length}
-										</span>
-									)}
-								</span>
+								{plan.name}
 							</button>
 						))}
 					</div>
