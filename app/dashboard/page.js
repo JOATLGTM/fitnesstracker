@@ -520,9 +520,9 @@ export default function DashboardPage() {
 				}}
 			/>
 
-			<div className="flex-1 flex flex-col pt-[72px] pb-[88px]">
+			<div className="flex-1 flex flex-col pt-[72px] pb-[88px] min-w-0 overflow-hidden">
 				{/* Horizontal Workout Plan Tabs */}
-				<div className="px-5 py-4 overflow-x-auto momentum-scroll border-b border-border bg-background-secondary">
+				<div className="px-5 py-4 overflow-x-auto momentum-scroll border-b border-border bg-background-secondary shrink-0">
 					<div className="flex gap-3 min-w-max">
 						{workoutPlans.map((plan) => (
 							<button
@@ -551,8 +551,8 @@ export default function DashboardPage() {
 					</div>
 				</div>
 
-				<main className="flex-1 px-5 py-5 overflow-y-auto momentum-scroll">
-					<div className="space-y-4 pb-4">
+				<main className="flex-1 min-w-0 px-5 py-5 overflow-y-auto overflow-x-hidden momentum-scroll">
+					<div className="space-y-4 pb-4 min-w-0">
 						{workoutPlans.length === 0 ? (
 							<div className="text-center py-20 px-5 animate-fade-in">
 								<div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl flex items-center justify-center">

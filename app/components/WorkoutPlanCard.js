@@ -66,7 +66,7 @@ export default function WorkoutPlanCard({
 	};
 
 	return (
-		<div className="glass rounded-2xl border-2 border-border overflow-hidden transition-all duration-slow animate-fade-in shadow-lg hover:shadow-xl">
+		<div className="glass rounded-2xl border-2 border-border overflow-hidden transition-all duration-slow animate-fade-in shadow-lg hover:shadow-xl min-w-0">
 			{/* Plan Header */}
 			<div className="flex items-center justify-between px-5 py-4 bg-surface/50 border-b border-border">
 				<div className="flex-1 flex items-center gap-2 min-w-0">

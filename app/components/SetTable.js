@@ -31,7 +31,7 @@ export default function SetTable({
 	};
 
 	return (
-		<div className="overflow-x-auto -mx-1 px-1">
+		<div className="overflow-x-hidden -mx-1 px-1">
 			<div className="flex items-center justify-start mb-2 px-1">
 				<button
 					onClick={() =>
