@@ -4,64 +4,27 @@ export default function SetTable({
 	exerciseId,
 	onUpdateSet,
 	onDeleteSet,
-	onSetComplete,
 }) {
 	const checkIfPR = (set, setIndex) => {
 		if (!set.current.weight || !set.current.reps) return false;
-		
+
 		const currentVolume = set.current.weight * set.current.reps;
 		const previousVolume = set.previous.weight * set.previous.reps;
-		
-		// Check if current weight is higher at same or more reps
-		const isWeightPR = set.current.weight > set.previous.weight && set.current.reps >= set.previous.reps;
-		// Check if same weight but more reps
-		const isRepPR = set.current.weight === set.previous.weight && set.current.reps > set.previous.reps;
-		// Check if total volume increased
-		const isVolumePR = currentVolume > previousVolume && currentVolume > 0 && previousVolume > 0;
-		
-		return isWeightPR || isRepPR || isVolumePR;
-	};
 
-	const handleSetComplete = (setIndex) => {
-		const set = sets[setIndex];
-		const isPR = checkIfPR(set, setIndex);
-		if (onSetComplete) {
-			onSetComplete(setIndex, isPR, set);
-		}
+		const isWeightPR =
+			set.current.weight > set.previous.weight &&
+			set.current.reps >= set.previous.reps;
+		const isRepPR =
+			set.current.weight === set.previous.weight &&
+			set.current.reps > set.previous.reps;
+		const isVolumePR =
+			currentVolume > previousVolume && currentVolume > 0 && previousVolume > 0;
+
+		return isWeightPR || isRepPR || isVolumePR;
 	};
 
 	return (
 		<div className="overflow-x-hidden -mx-1 px-1">
-			<div className="flex items-center justify-start mb-2 px-1">
-				<button
-					onClick={() =>
-						handleSetComplete(Math.max(sets.length - 1, 0))
-					}
-					disabled={
-						!sets.length ||
-						!sets[sets.length - 1].current.weight ||
-						!sets[sets.length - 1].current.reps
-					}
-					className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-success-bg text-success hover:bg-success-bg/80 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-fast touch-feedback relative overflow-hidden"
-					aria-label="Complete latest set"
-					title="Complete latest set"
-				>
-					<svg
-						className="w-4 h-4 mr-1"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth={2.3}
-							d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-						/>
-					</svg>
-					<span>Complete set</span>
-				</button>
-			</div>
 			<table className="w-full min-w-full" style={{ tableLayout: "fixed" }}>
 				<thead>
 					<tr className="text-foreground-secondary text-sm font-bold border-b-2 border-border">

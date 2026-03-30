@@ -8,7 +8,6 @@ export default function ExerciseCard({
 	onAddSet,
 	onUpdateSet,
 	onDeleteSet,
-	onSetComplete,
 	onMoveExerciseUp,
 	onMoveExerciseDown,
 	isFirstExercise,
@@ -104,18 +103,6 @@ export default function ExerciseCard({
 					exerciseId={exercise.id}
 					onUpdateSet={onUpdateSet}
 					onDeleteSet={onDeleteSet}
-					onSetComplete={(setIndex, isPR, set) => {
-						if (onSetComplete) {
-							onSetComplete(
-								planId,
-								exercise.id,
-								exercise.name,
-								setIndex,
-								isPR,
-								set
-							);
-						}
-					}}
 				/>
 				<button
 					onClick={() => onAddSet(planId, exercise.id)}

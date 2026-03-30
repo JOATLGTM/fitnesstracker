@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 import WorkoutPlanCard from "../components/WorkoutPlanCard";
@@ -8,7 +8,11 @@ import AddExerciseModal from "../components/AddExerciseModal";
 import TopBar from "../components/TopBar";
 import BottomBar from "../components/BottomBar";
 import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
-import PRCelebration from "../components/PRCelebration";
+import RestTimerPickerModal from "../components/RestTimerPickerModal";
+import {
+	playRestCompletionSound,
+	vibrateOnRestComplete,
+} from "../utils/restTimerFeedback";
 
 const LAST_ACTIVE_PLAN_KEY_PREFIX = "cvfitnesstracker_last_active_plan";
 
@@ -33,17 +37,25 @@ export default function DashboardPage() {
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 	const [planToDelete, setPlanToDelete] = useState(null);
 
-	// Header Rest Timer state
-	const [restDuration] = useState(90);
+	// Standalone rest timer (header clock)
+	const [restDuration, setRestDuration] = useState(90);
 	const [restTimeLeft, setRestTimeLeft] = useState(0);
 	const [isRestTimerRunning, setIsRestTimerRunning] = useState(false);
+	const [isRestPickerOpen, setIsRestPickerOpen] = useState(false);
 
-	// PR Celebration state
-	const [isPRCelebrationVisible, setIsPRCelebrationVisible] =
-		useState(false);
-	const [prData, setPRData] = useState(null);
+	const startRest = (seconds) => {
+		const s = Math.max(1, Math.min(3600, Number(seconds) || 90));
+		setRestDuration(s);
+		setRestTimeLeft(s);
+		setIsRestTimerRunning(true);
+		setIsRestPickerOpen(false);
+	};
 
-	// Header rest timer countdown
+	const stopRest = () => {
+		setIsRestTimerRunning(false);
+		setRestTimeLeft(0);
+	};
+
 	useEffect(() => {
 		if (!isRestTimerRunning || restTimeLeft <= 0) {
 			return;
@@ -52,6 +64,10 @@ export default function DashboardPage() {
 		const intervalId = setInterval(() => {
 			setRestTimeLeft((prev) => {
 				if (prev <= 1) {
+					if (prev === 1) {
+						playRestCompletionSound();
+						vibrateOnRestComplete();
+					}
 					setIsRestTimerRunning(false);
 					return 0;
 				}
@@ -409,25 +425,6 @@ export default function DashboardPage() {
 		);
 	};
 
-	const handleSetComplete = useCallback(
-		(planId, exerciseId, exerciseName, setIndex, isPR, set) => {
-			// Show PR celebration if it's a PR
-			if (isPR && set?.current?.weight && set?.current?.reps) {
-				setPRData({
-					exercise: exerciseName,
-					weight: set.current.weight,
-					reps: set.current.reps,
-				});
-				setIsPRCelebrationVisible(true);
-			}
-
-			// Start header rest timer (for any exercise in any plan)
-			setRestTimeLeft(restDuration);
-			setIsRestTimerRunning(true);
-		},
-		[restDuration]
-	);
-
 	const handleSave = async () => {
 		if (!user?.id || workoutPlans.length === 0) return;
 
@@ -503,17 +500,22 @@ export default function DashboardPage() {
 			)}
 
 			<TopBar
-				username={user?.username}
 				saveStatus={saveStatus}
 				isSaving={isSaving}
 				onSave={handleSave}
 				onLogout={handleLogout}
-				timerSeconds={restTimeLeft}
-				isTimerRunning={isRestTimerRunning}
-				onTimerReset={() => {
-					setRestTimeLeft(restDuration);
-					setIsRestTimerRunning(false);
-				}}
+				onRestClockClick={() => setIsRestPickerOpen(true)}
+				restTimeLeft={restTimeLeft}
+				isRestTimerRunning={isRestTimerRunning}
+			/>
+
+			<RestTimerPickerModal
+				isOpen={isRestPickerOpen}
+				onClose={() => setIsRestPickerOpen(false)}
+				defaultSeconds={restDuration}
+				isRunning={isRestTimerRunning}
+				onStartRest={startRest}
+				onStopRest={stopRest}
 			/>
 
 			<div className="flex-1 flex flex-col pt-[72px] pb-[88px] min-w-0 overflow-hidden">
@@ -581,7 +583,6 @@ export default function DashboardPage() {
 										onAddSet={addSet}
 										onUpdateSet={updateSet}
 										onDeleteSet={deleteSet}
-										onSetComplete={handleSetComplete}
 										onMovePlanUp={() =>
 											movePlan(plan.id, "up")
 										}
@@ -623,16 +624,6 @@ export default function DashboardPage() {
 				}
 			/>
 
-			<PRCelebration
-				isVisible={isPRCelebrationVisible}
-				exercise={prData?.exercise}
-				weight={prData?.weight}
-				reps={prData?.reps}
-				onClose={() => {
-					setIsPRCelebrationVisible(false);
-					setPRData(null);
-				}}
-			/>
 		</div>
 	);
 }

@@ -1,12 +1,11 @@
 export default function TopBar({
-	username,
 	saveStatus,
 	isSaving,
 	onSave,
 	onLogout,
-	timerSeconds,
-	isTimerRunning,
-	onTimerReset,
+	onRestClockClick,
+	restTimeLeft,
+	isRestTimerRunning,
 }) {
 	const formatTime = (seconds) => {
 		const totalSeconds = Math.max(0, seconds || 0);
@@ -18,42 +17,41 @@ export default function TopBar({
 	return (
 		<header className="glass-strong border-b border-border fixed top-0 left-0 right-0 z-fixed safe-top animate-slide-down">
 			<div className="px-5 py-4 flex justify-between items-center gap-4">
-				<div className="flex-1 min-w-0">
-					{typeof timerSeconds === "number" && timerSeconds > 0 ? (
-						<button
-							type="button"
-							onClick={onTimerReset}
-							className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold min-h-touch touch-feedback relative overflow-hidden ${
-								isTimerRunning
-									? "bg-success-bg/20 border-success text-success"
-									: "bg-surface border-border text-foreground-secondary hover:bg-surface-hover"
-							}`}
+				<div className="flex-1 min-w-0 flex items-center">
+					<button
+						type="button"
+						onClick={onRestClockClick}
+						className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold min-h-touch touch-feedback relative overflow-hidden max-w-full ${
+							isRestTimerRunning && restTimeLeft > 0
+								? "bg-success-bg/20 border-success text-success"
+								: "bg-surface border-border text-foreground-secondary hover:bg-surface-hover hover:text-foreground"
+						}`}
+						aria-label="Rest timer"
+						title="Rest timer"
+					>
+						<svg
+							className="w-5 h-5 flex-shrink-0"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
 						>
-							<svg
-								className="w-4 h-4"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2.3}
-									d="M12 8v4l3 3m4-3a7 7 0 11-7-7"
-								/>
-							</svg>
-							<span className="text-sm font-bold">
-								{formatTime(timerSeconds)}
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2.2}
+								d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"
+							/>
+						</svg>
+						{restTimeLeft > 0 ? (
+							<span className="text-sm font-bold tabular-nums truncate">
+								{formatTime(restTimeLeft)}
 							</span>
-							<span className="text-[11px] uppercase tracking-wide">
+						) : (
+							<span className="text-[11px] uppercase tracking-wide font-bold truncate">
 								Rest
 							</span>
-						</button>
-					) : (
-						<p className="text-xs text-foreground-tertiary font-medium truncate">
-							Rest timer ready
-						</p>
-					)}
+						)}
+					</button>
 				</div>
 				<div className="flex items-center gap-2 flex-shrink-0">
 					{saveStatus && !saveStatus.includes("success") && (

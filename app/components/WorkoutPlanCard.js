@@ -14,7 +14,6 @@ export default function WorkoutPlanCard({
 	onAddSet,
 	onUpdateSet,
 	onDeleteSet,
-	onSetComplete,
 	onMovePlanUp,
 	onMovePlanDown,
 	onMoveExercise,
@@ -199,7 +198,6 @@ export default function WorkoutPlanCard({
 								onAddSet={onAddSet}
 								onUpdateSet={onUpdateSet}
 								onDeleteSet={onDeleteSet}
-								onSetComplete={onSetComplete}
 								onMoveExerciseUp={() =>
 									onMoveExercise(
 										plan.id,
