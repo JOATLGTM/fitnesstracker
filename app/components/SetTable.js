@@ -106,7 +106,7 @@ export default function SetTable({
 								<td className="py-3 px-2">
 									<input
 										type="number"
-										inputMode="numeric"
+										inputMode="decimal"
 										value={
 											set.current.weight === 0
 												? ""
@@ -126,21 +126,30 @@ export default function SetTable({
 										}`}
 										placeholder="0"
 										min="0"
-										step="0.5"
+										step="0.01"
 									/>
 								</td>
 								<td className="py-3 px-2">
 									<input
 										type="number"
 										inputMode="numeric"
-										value={set.current.reps}
+										value={
+											set.current.reps === 0
+												? ""
+												: set.current.reps
+										}
 										onChange={(e) =>
 											onUpdateSet(
 												planId,
 												exerciseId,
 												setIndex,
 												"reps",
-												Number(e.target.value)
+												e.target.value === ""
+													? ""
+													: parseInt(
+															e.target.value,
+															10
+													  )
 											)
 										}
 										className={`w-full px-3 py-3 text-center text-lg font-bold border-2 rounded-lg bg-surface text-foreground focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-fast min-h-touch ${
@@ -148,6 +157,7 @@ export default function SetTable({
 										}`}
 										placeholder="0"
 										min="0"
+										step="1"
 									/>
 								</td>
 								<td className="py-3 px-1 text-center">
